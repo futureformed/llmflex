@@ -85,7 +85,10 @@ public final class ClaudeCodeTarget: Target, @unchecked Sendable {
             dict["model"] = profile.modelName
         }
         var env = dict["env"] as? [String: Any] ?? [:]
-        env["ANTHROPIC_BASE_URL"] = profile.baseURL
+        // Claude Code expects ANTHROPIC_BASE_URL to be the gateway ROOT —
+        // it appends /v1/messages itself. Our profile baseURL includes /v1
+        // for the models-list / Test Connection path, so strip it here.
+        env["ANTHROPIC_BASE_URL"] = Self.strippedGatewayRoot(from: profile.baseURL)
         // Anthropic's CLI warns when BOTH AUTH_TOKEN and API_KEY are set
         // because they take different code paths server-side. We pick the
         // correct one based on the provider's auth scheme and explicitly
@@ -155,6 +158,22 @@ public final class ClaudeCodeTarget: Target, @unchecked Sendable {
         } catch {
             throw TargetError.ioFailure("Writing \(settingsURL.lastPathComponent)", underlying: error)
         }
+    }
+
+    /// Strip a trailing `/vN` (or `/vNbeta`, etc.) so the URL ends at the
+    /// gateway root. Claude Code's ANTHROPIC_BASE_URL semantics:
+    ///   `https://api.anthropic.com/v1`         → `https://api.anthropic.com`
+    ///   `https://opencode.ai/zen/go/v1`        → `https://opencode.ai/zen/go`
+    ///   `https://litellm-proxy:4000/v1beta`    → `https://litellm-proxy:4000`
+    /// Already-stripped URLs pass through unchanged.
+    static func strippedGatewayRoot(from url: String) -> String {
+        var s = url
+        while s.hasSuffix("/") { s.removeLast() }
+        let pattern = #"/v\d+[a-z]*$"#
+        if let range = s.range(of: pattern, options: .regularExpression) {
+            s.removeSubrange(range)
+        }
+        return s
     }
 
     private func deriveProviderLabel(from baseURL: String) -> String? {

@@ -40,7 +40,8 @@ final class ClaudeCodeTargetTests: XCTestCase {
         XCTAssertEqual(dict["apiKeyHelper"] as? String, "/usr/local/bin/get-key.sh",
                        "must preserve unrelated user keys")
         let env = try XCTUnwrap(dict["env"] as? [String: Any])
-        XCTAssertEqual(env["ANTHROPIC_BASE_URL"] as? String, "https://api.anthropic.com/v1")
+        XCTAssertEqual(env["ANTHROPIC_BASE_URL"] as? String, "https://api.anthropic.com",
+                       "Claude Code wants the gateway root — /v1 must be stripped because Claude Code appends /v1/messages itself")
         // Anthropic-direct path uses x-api-key, not Bearer.
         XCTAssertEqual(env["ANTHROPIC_API_KEY"] as? String, "sk-ant-test")
         XCTAssertNil(env["ANTHROPIC_AUTH_TOKEN"],
@@ -149,7 +150,9 @@ final class ClaudeCodeTargetTests: XCTestCase {
         let status = try target.inspect()
         XCTAssertEqual(status.target, .claudeCode)
         XCTAssertEqual(status.activeModel, "claude-opus-4-8")
-        XCTAssertEqual(status.activeBaseURL, "https://api.anthropic.com/v1")
+        // Inspect reads what's on disk in settings.json, which is the stripped
+        // gateway-root form Claude Code expects (no /v1).
+        XCTAssertEqual(status.activeBaseURL, "https://api.anthropic.com")
         XCTAssertEqual(status.activeProviderLabel, "Anthropic")
         XCTAssertEqual(status.authMode, .apiKey)
     }
@@ -163,6 +166,23 @@ final class ClaudeCodeTargetTests: XCTestCase {
 
     func testPolicyAlwaysAllowed() throws {
         XCTAssertEqual(try target.policy(), .allowed)
+    }
+
+    func testStrippedGatewayRoot() {
+        let cases: [(input: String, expected: String)] = [
+            ("https://api.anthropic.com/v1",         "https://api.anthropic.com"),
+            ("https://api.anthropic.com/v1/",        "https://api.anthropic.com"),
+            ("https://opencode.ai/zen/go/v1",        "https://opencode.ai/zen/go"),
+            ("https://litellm-proxy:4000/v1beta",    "https://litellm-proxy:4000"),
+            ("https://api.anthropic.com",            "https://api.anthropic.com"),
+            ("https://example.com/v2",               "https://example.com"),
+            ("https://example.com/api/v1",           "https://example.com/api"),
+        ]
+        for c in cases {
+            XCTAssertEqual(ClaudeCodeTarget.strippedGatewayRoot(from: c.input),
+                           c.expected,
+                           "stripping \(c.input)")
+        }
     }
 }
 
