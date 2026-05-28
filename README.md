@@ -1,10 +1,8 @@
 # LLM Flex
 
-macOS menu bar app for switching the Codex CLI / Codex.app between API providers (OpenRouter, Ollama, OpenAI-compatible, custom).
-
-## Status
-
-🚧 **Phase A — scaffolding.** Empty SwiftUI menu bar shell builds and launches. Real functionality lands in Phase B.
+A simple macOS menu bar app that lets you switch the underlying AI model in
+Claude Code and OpenAI Codex. No messing with JSON or env vars — just grab an
+API key and run LLM Flex.
 
 ## Build
 
