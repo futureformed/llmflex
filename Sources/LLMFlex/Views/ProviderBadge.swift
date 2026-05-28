@@ -25,10 +25,11 @@ struct ProviderBadge: View {
 
     private var bundledImage: NSImage? {
         // Tries the provider's raw value, e.g. "openai", "lm_studio".
+        // Note: SPM's .process("Resources") flattens directory structure,
+        // so the files live at the bundle root, not under ProviderIcons/.
         guard let url = Bundle.module.url(
             forResource: provider.rawValue,
-            withExtension: "png",
-            subdirectory: "ProviderIcons"
+            withExtension: "png"
         ) else { return nil }
         return NSImage(contentsOf: url)
     }
