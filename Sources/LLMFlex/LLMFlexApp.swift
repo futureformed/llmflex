@@ -26,7 +26,7 @@ private struct ScaffoldPopover: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("LLM Flex")
                 .font(.headline)
-            Text("Phase A scaffolding — v\(LLMFlexCore.version)")
+            Text("Phase B core ready — UI lands in Phase D")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Divider()

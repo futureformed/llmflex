@@ -1,0 +1,48 @@
+import Foundation
+
+public struct ConnectivityResult: Sendable {
+    public let ok: Bool
+    public let statusCode: Int?
+    public let message: String
+}
+
+/// Sanity-checks a provider's base URL + API key by hitting `<baseURL>/models`.
+/// Wrap this in a protocol at the UI layer to mock in tests — we don't unit-
+/// test the live HTTP here.
+public actor ConnectivityTester {
+    private let session: URLSession
+
+    public init(session: URLSession = .shared) {
+        self.session = session
+    }
+
+    public func test(baseURL: String, apiKey: String?) async -> ConnectivityResult {
+        guard var components = URLComponents(string: baseURL) else {
+            return .init(ok: false, statusCode: nil, message: "Invalid base URL")
+        }
+        var path = components.path
+        if !path.hasSuffix("/") { path += "/" }
+        path += "models"
+        components.path = path
+        guard let url = components.url else {
+            return .init(ok: false, statusCode: nil, message: "Invalid base URL")
+        }
+
+        var req = URLRequest(url: url, timeoutInterval: 8)
+        if let key = apiKey, !key.isEmpty {
+            req.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+        }
+
+        do {
+            let (_, response) = try await session.data(for: req)
+            let http = response as? HTTPURLResponse
+            let code = http?.statusCode
+            let ok = (200...299).contains(code ?? -1)
+            return .init(ok: ok,
+                         statusCode: code,
+                         message: ok ? "Connected" : "HTTP \(code.map(String.init) ?? "?")")
+        } catch {
+            return .init(ok: false, statusCode: nil, message: error.localizedDescription)
+        }
+    }
+}
