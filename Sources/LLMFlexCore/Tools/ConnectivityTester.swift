@@ -6,6 +6,17 @@ public struct ConnectivityResult: Sendable {
     public let message: String
 }
 
+/// How a provider expects its API key to be presented on the wire.
+/// Different vendors picked different conventions:
+///   - OpenAI / OpenRouter / OAI-compatible: `Authorization: Bearer <key>`
+///   - Anthropic:                            `x-api-key` + `anthropic-version`
+///   - Google Gemini:                        `?key=<key>` query parameter
+public enum AuthScheme: Sendable {
+    case bearer
+    case anthropicHeaders
+    case googleQueryParam
+}
+
 /// Sanity-checks a provider's base URL + API key by hitting `<baseURL>/models`.
 /// Wrap this in a protocol at the UI layer to mock in tests — we don't unit-
 /// test the live HTTP here.
@@ -16,7 +27,11 @@ public actor ConnectivityTester {
         self.session = session
     }
 
-    public func test(baseURL: String, apiKey: String?) async -> ConnectivityResult {
+    public func test(
+        baseURL: String,
+        apiKey: String?,
+        scheme: AuthScheme = .bearer
+    ) async -> ConnectivityResult {
         guard var components = URLComponents(string: baseURL) else {
             return .init(ok: false, statusCode: nil, message: "Invalid base URL")
         }
@@ -24,13 +39,27 @@ public actor ConnectivityTester {
         if !path.hasSuffix("/") { path += "/" }
         path += "models"
         components.path = path
+
+        if scheme == .googleQueryParam, let key = apiKey, !key.isEmpty {
+            var items = components.queryItems ?? []
+            items.append(URLQueryItem(name: "key", value: key))
+            components.queryItems = items
+        }
         guard let url = components.url else {
             return .init(ok: false, statusCode: nil, message: "Invalid base URL")
         }
 
         var req = URLRequest(url: url, timeoutInterval: 8)
         if let key = apiKey, !key.isEmpty {
-            req.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+            switch scheme {
+            case .bearer:
+                req.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+            case .anthropicHeaders:
+                req.setValue(key, forHTTPHeaderField: "x-api-key")
+                req.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
+            case .googleQueryParam:
+                break // already encoded as a query param
+            }
         }
 
         do {

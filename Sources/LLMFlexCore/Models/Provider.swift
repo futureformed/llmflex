@@ -117,4 +117,17 @@ public enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
     /// provider-coverage limitation, not an LLM Flex bug.
     /// See: https://github.com/openai/codex/discussions/7782
     public var wireAPI: String { "responses" }
+
+    /// How this provider expects API-key auth in HTTP requests. Used by
+    /// ConnectivityTester so Test Connection picks the right header per
+    /// provider.
+    public var authScheme: AuthScheme {
+        switch self {
+        case .anthropic:        return .anthropicHeaders
+        case .gemini:           return .googleQueryParam
+        case .openai, .openrouter, .lmStudio, .openaiCompatible,
+             .custom, .ollama, .opencodeGo:
+            return .bearer
+        }
+    }
 }

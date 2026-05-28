@@ -231,9 +231,13 @@ struct ProfileEditor: View {
         testResult = nil
         let keySnapshot = apiKey
         let urlSnapshot = baseURL
+        let schemeSnapshot = provider.authScheme
         Task {
-            let result = await model.tester.test(baseURL: urlSnapshot,
-                                                 apiKey: keySnapshot.isEmpty ? nil : keySnapshot)
+            let result = await model.tester.test(
+                baseURL: urlSnapshot,
+                apiKey: keySnapshot.isEmpty ? nil : keySnapshot,
+                scheme: schemeSnapshot
+            )
             await MainActor.run {
                 testResult = result
                 testing = false
