@@ -33,6 +33,12 @@ struct ProfileRow: View {
                             .foregroundStyle(Theme.accent)
                             .clipShape(Capsule())
                     }
+                    if profile.provider.codexCompatibility == .incompatible {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
+                            .help("Codex won't talk to this directly — needs a proxy or non-Codex target.")
+                    }
                 }
                 Text(metaLine)
                     .font(Theme.Fonts.mono(11))

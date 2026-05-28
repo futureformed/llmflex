@@ -1,12 +1,25 @@
 import Foundation
 
+public enum CodexCompatibility: String, Codable, Sendable {
+    case native       // Speaks OpenAI Responses API
+    case incompatible // Won't work with Codex directly — needs a proxy
+}
+
 public enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
+    // Codex-native (speak the OpenAI Responses API)
     case openai
     case openrouter
     case lmStudio = "lm_studio"
     case openaiCompatible = "openai_compatible"
-    case ollama
     case custom
+
+    // Codex-incompatible (chat-completions, Anthropic messages, or other format).
+    // Profiles for these still save and will be useful for Claude Code or
+    // proxy-routed setups; Codex.app will error on direct use.
+    case ollama
+    case anthropic
+    case gemini
+    case opencodeGo = "opencode_go"
 
     public var id: String { rawValue }
 
@@ -16,8 +29,11 @@ public enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
         case .openrouter: "OpenRouter"
         case .lmStudio: "LM Studio"
         case .openaiCompatible: "OpenAI-compatible"
-        case .ollama: "Ollama"
         case .custom: "Custom"
+        case .ollama: "Ollama"
+        case .anthropic: "Anthropic"
+        case .gemini: "Gemini"
+        case .opencodeGo: "Opencode Go"
         }
     }
 
@@ -27,8 +43,11 @@ public enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
         case .openrouter: "https://openrouter.ai/api/v1"
         case .lmStudio: "http://localhost:1234/v1"
         case .openaiCompatible: ""
-        case .ollama: "http://localhost:11434/v1"
         case .custom: ""
+        case .ollama: "http://localhost:11434/v1"
+        case .anthropic: "https://api.anthropic.com/v1"
+        case .gemini: "https://generativelanguage.googleapis.com/v1beta"
+        case .opencodeGo: "https://opencode.ai/zen/go/v1"
         }
     }
 
@@ -36,6 +55,34 @@ public enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
         switch self {
         case .ollama, .lmStudio: false
         default: true
+        }
+    }
+
+    /// Whether Codex (which now requires `wire_api = "responses"`) can talk
+    /// to this provider directly.
+    public var codexCompatibility: CodexCompatibility {
+        switch self {
+        case .openai, .openrouter, .lmStudio, .openaiCompatible, .custom:
+            return .native
+        case .ollama, .anthropic, .gemini, .opencodeGo:
+            return .incompatible
+        }
+    }
+
+    /// One-line explanation when Codex can't reach this provider directly.
+    /// `nil` when the provider is Codex-native.
+    public var codexIncompatibilityReason: String? {
+        switch self {
+        case .openai, .openrouter, .lmStudio, .openaiCompatible, .custom:
+            return nil
+        case .ollama:
+            return "Ollama only speaks chat-completions. Codex now requires the Responses API."
+        case .anthropic:
+            return "Anthropic uses its own Messages API. Not compatible with Codex's Responses requirement."
+        case .gemini:
+            return "Gemini uses Google's own format. Not compatible with Codex's Responses requirement."
+        case .opencodeGo:
+            return "Opencode Go uses chat-completions or Anthropic-messages endpoints, neither of which is the Responses API."
         }
     }
 
