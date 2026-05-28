@@ -121,32 +121,41 @@ struct ProfileEditor: View {
     }
 
     private var testRow: some View {
-        HStack(spacing: 10) {
-            Button {
-                runTest()
-            } label: {
-                if testing {
-                    ProgressView().controlSize(.small)
-                } else {
-                    Label("Test connection", systemImage: "wifi")
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 10) {
+                Button {
+                    runTest()
+                } label: {
+                    if testing {
+                        ProgressView().controlSize(.small)
+                    } else {
+                        Label("Test connection", systemImage: "wifi")
+                    }
                 }
-            }
-            .buttonStyle(.bordered)
-            .disabled(testing || baseURL.isEmpty)
+                .buttonStyle(.bordered)
+                .disabled(testing || baseURL.isEmpty)
 
-            if let r = testResult {
-                if r.ok {
+                if let r = testResult, r.ok {
                     Label(r.message, systemImage: "checkmark.circle.fill")
                         .font(.caption)
                         .foregroundStyle(Theme.accent)
-                } else {
-                    Label(r.message, systemImage: "xmark.octagon.fill")
+                }
+                Spacer()
+            }
+            // Errors go below the row so the full provider message can wrap
+            // freely without fighting the Test button for horizontal space.
+            if let r = testResult, !r.ok {
+                HStack(alignment: .top, spacing: 6) {
+                    Image(systemName: "xmark.octagon.fill")
+                        .foregroundStyle(.orange)
+                        .font(.caption)
+                    Text(r.message)
                         .font(.caption)
                         .foregroundStyle(.orange)
-                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .textSelection(.enabled)
                 }
             }
-            Spacer()
         }
     }
 
