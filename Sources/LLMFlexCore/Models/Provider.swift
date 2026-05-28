@@ -1,7 +1,9 @@
 import Foundation
 
 public enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
+    case openai
     case openrouter
+    case lmStudio = "lm_studio"
     case openaiCompatible = "openai_compatible"
     case ollama
     case custom
@@ -10,7 +12,9 @@ public enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
 
     public var displayName: String {
         switch self {
+        case .openai: "OpenAI"
         case .openrouter: "OpenRouter"
+        case .lmStudio: "LM Studio"
         case .openaiCompatible: "OpenAI-compatible"
         case .ollama: "Ollama"
         case .custom: "Custom"
@@ -19,7 +23,9 @@ public enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
 
     public var defaultBaseURL: String {
         switch self {
+        case .openai: "https://api.openai.com/v1"
         case .openrouter: "https://openrouter.ai/api/v1"
+        case .lmStudio: "http://localhost:1234/v1"
         case .openaiCompatible: ""
         case .ollama: "http://localhost:11434/v1"
         case .custom: ""
@@ -28,7 +34,7 @@ public enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
 
     public var requiresAPIKey: Bool {
         switch self {
-        case .ollama: false
+        case .ollama, .lmStudio: false
         default: true
         }
     }
