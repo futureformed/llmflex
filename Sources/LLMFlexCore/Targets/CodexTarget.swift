@@ -198,7 +198,10 @@ public final class CodexTarget: Target, @unchecked Sendable {
         dict.removeValue(forKey: "last_refresh")
 
         do {
-            let data = try JSONSerialization.data(withJSONObject: dict, options: [.prettyPrinted, .sortedKeys])
+            let data = try JSONSerialization.data(
+                withJSONObject: dict,
+                options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+            )
             try data.write(to: authURL, options: .atomic)
         } catch {
             throw TargetError.ioFailure("Writing \(authURL.lastPathComponent)", underlying: error)

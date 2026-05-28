@@ -137,7 +137,9 @@ public final class ClaudeCodeTarget: Target, @unchecked Sendable {
         do {
             let data = try JSONSerialization.data(
                 withJSONObject: dict,
-                options: [.prettyPrinted, .sortedKeys]
+                // .withoutEscapingSlashes keeps URLs readable as
+                // "https://api.anthropic.com/v1" instead of "https:\/\/…\/v1".
+                options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
             )
             try data.write(to: settingsURL, options: .atomic)
         } catch {
