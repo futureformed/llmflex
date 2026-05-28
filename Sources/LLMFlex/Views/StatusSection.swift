@@ -4,35 +4,51 @@ import LLMFlexCore
 struct StatusSection: View {
     @Bindable var model: AppModel
 
+    private var isActive: Bool { model.codexStatus.activeProviderKey != nil }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                Image(systemName: "terminal")
-                    .foregroundStyle(.secondary)
-                Text("Codex")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                Spacer()
-                authBadge
+        HStack(spacing: 0) {
+            // Left accent bar — present but invisible when inactive, so the
+            // content alignment doesn't jump when state flips.
+            Rectangle()
+                .fill(isActive ? Theme.accent : Color.clear)
+                .frame(width: 3)
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Image(systemName: "terminal")
+                        .foregroundStyle(isActive ? Theme.accent : .secondary)
+                    Text("Codex")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    Spacer()
+                    authBadge
+                }
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(isActive ? Theme.accent : .secondary)
+                        .frame(width: 6, height: 6)
+                    Text(activeLine)
+                        .font(.caption)
+                        .fontWeight(isActive ? .semibold : .regular)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                if let m = model.codexStatus.activeModel {
+                    Text(m)
+                        .font(Theme.Fonts.mono(11))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
             }
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(model.codexStatus.activeProviderKey == nil ? .secondary : Theme.accent)
-                    .frame(width: 6, height: 6)
-                Text(activeLine)
-                    .font(.caption)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-            }
-            if let model = model.codexStatus.activeModel {
-                Text(model)
-                    .font(Theme.Fonts.mono(11))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-            }
+            .padding(.leading, 10)
+            .padding(.vertical, 8)
+            .padding(.trailing, 6)
         }
+        .background(isActive ? Theme.accent.opacity(0.10) : Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: 6))
     }
 
     private var activeLine: String {
