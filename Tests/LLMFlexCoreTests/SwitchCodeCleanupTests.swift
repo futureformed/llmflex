@@ -36,6 +36,25 @@ final class SwitchCodeCleanupTests: XCTestCase {
         XCTAssertTrue(cleaned.contains("model = \"gpt-5.5\""))
     }
 
+    func testCleanRemovesOrphanedEnvSection() {
+        let cleaned = cleaner.clean(legacyConfig)
+        // The `[env]` table only ever held SWITCHCODE_API_KEY; it must not
+        // be left as an orphan header.
+        XCTAssertFalse(cleaned.contains("[env]"))
+    }
+
+    func testCleanPreservesNonOrphanEnvSection() {
+        let withRealEnv = """
+        [env]
+        SWITCHCODE_API_KEY = "sk-leaked"
+        OTHER_KEY = "keep me"
+        """
+        let cleaned = cleaner.clean(withRealEnv)
+        XCTAssertTrue(cleaned.contains("[env]"))
+        XCTAssertTrue(cleaned.contains("OTHER_KEY"))
+        XCTAssertFalse(cleaned.contains("SWITCHCODE_API_KEY"))
+    }
+
     func testCleanCleanContentIsNoop() {
         let pristine = """
         model = "gpt-5.5"

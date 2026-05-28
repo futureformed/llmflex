@@ -38,9 +38,37 @@ public struct CodexAuthStateDetector: Sendable {
     }
 }
 
+/// Sets / unsets a launchd user environment variable. Codex (and other GUI
+/// apps) resolve `env_key` from the launchd env, not from the app's process
+/// env or from auth.json. Injected so tests can verify the apply path calls
+/// us without actually shelling out to `launchctl`.
+public protocol LaunchdEnvironment: Sendable {
+    func setenv(_ name: String, _ value: String)
+    func unsetenv(_ name: String)
+}
+
+public struct SystemLaunchdEnvironment: LaunchdEnvironment {
+    public init() {}
+    public func setenv(_ name: String, _ value: String) {
+        run(args: ["setenv", name, value])
+    }
+    public func unsetenv(_ name: String) {
+        run(args: ["unsetenv", name])
+    }
+    private func run(args: [String]) {
+        let proc = Process()
+        proc.launchPath = "/bin/launchctl"
+        proc.arguments = args
+        try? proc.run()
+        proc.waitUntilExit()
+    }
+}
+
 /// Codex CLI + Codex.app target. Edits two files:
 ///   - `~/.codex/config.toml`        — managed TOML block at top
 ///   - `~/.codex/auth.json`          — OPENAI_API_KEY + auth_mode swap
+/// And sets `OPENAI_API_KEY` in the user's launchd environment so GUI apps
+/// inherit it on next launch.
 public final class CodexTarget: Target, @unchecked Sendable {
     public let id: TargetID = .codex
     public let displayName: String = "Codex"
@@ -63,6 +91,7 @@ public final class CodexTarget: Target, @unchecked Sendable {
     public let snapshots: SnapshotStore
     public let detector: CodexAuthStateDetector
     public let appController: CodexAppController
+    public let launchdEnv: LaunchdEnvironment
     private let editor: TOMLBlockEditor
 
     public init(
@@ -70,13 +99,15 @@ public final class CodexTarget: Target, @unchecked Sendable {
         authURL: URL = CodexTarget.defaultAuthURL,
         snapshots: SnapshotStore = SnapshotStore(root: SnapshotStore.defaultRoot),
         detector: CodexAuthStateDetector? = nil,
-        appController: CodexAppController = CodexAppController()
+        appController: CodexAppController = CodexAppController(),
+        launchdEnv: LaunchdEnvironment = SystemLaunchdEnvironment()
     ) {
         self.configURL = configURL
         self.authURL = authURL
         self.snapshots = snapshots
         self.detector = detector ?? CodexAuthStateDetector(authURL: authURL)
         self.appController = appController
+        self.launchdEnv = launchdEnv
         self.editor = TOMLBlockEditor(
             startMarker: Self.blockStartMarker,
             endMarker: Self.blockEndMarker
@@ -124,8 +155,12 @@ public final class CodexTarget: Target, @unchecked Sendable {
         try snapshots.captureIfAbsent(file: configURL, tag: Self.snapshotTag)
         try snapshots.captureIfAbsent(file: authURL, tag: Self.snapshotTag)
 
+        let effectiveKey = apiKey.isEmpty ? "ollama-local" : apiKey
         try writeConfig(for: profile)
-        try writeAuth(apiKey: apiKey.isEmpty ? "ollama-local" : apiKey)
+        try writeAuth(apiKey: effectiveKey)
+        // Codex resolves `env_key` from the LAUNCHD environment, not auth.json.
+        // Without this, the desktop app errors with "Missing environment variable".
+        launchdEnv.setenv(Self.envKey, effectiveKey)
     }
 
     private func writeConfig(for profile: Profile) throws {
@@ -176,6 +211,7 @@ public final class CodexTarget: Target, @unchecked Sendable {
     public func restore() throws -> Bool {
         let configRestored = try snapshots.restore(file: configURL, tag: Self.snapshotTag)
         let authRestored = try snapshots.restore(file: authURL, tag: Self.snapshotTag)
+        launchdEnv.unsetenv(Self.envKey)
 
         // If we never snapshotted (target untouched), at least scrub our block
         // from config.toml as a best-effort cleanup.

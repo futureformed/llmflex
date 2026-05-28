@@ -57,6 +57,13 @@ public final class SnapshotStore: @unchecked Sendable {
         }
     }
 
+    /// Where the snapshot for `(file, tag)` lives on disk. Public so callers
+    /// can mutate snapshot contents in place — e.g. retroactively cleaning
+    /// up legacy artifacts so Restore gives a tidier baseline.
+    public func snapshotURL(for file: URL, tag: String) -> URL {
+        location(file: file, tag: tag)
+    }
+
     private func location(file: URL, tag: String) -> URL {
         root.appendingPathComponent(tag, isDirectory: true)
             .appendingPathComponent(file.lastPathComponent)

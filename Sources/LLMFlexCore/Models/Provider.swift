@@ -33,8 +33,11 @@ public enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// All providers we support speak OpenAI-compatible chat completions.
-    /// The OpenAI Responses API (which Codex's `[plugins.*]` features rely on)
-    /// is only available from OpenAI itself.
-    public var wireAPI: String { "chat" }
+    /// Codex (as of mid-2026) requires `wire_api = "responses"` — chat
+    /// completions are no longer accepted. OpenRouter has a Responses-API-
+    /// compatible endpoint at the same base URL. For Ollama / pure
+    /// OpenAI-chat providers this may not work end-to-end — that's a
+    /// provider-coverage limitation, not an LLM Flex bug.
+    /// See: https://github.com/openai/codex/discussions/7782
+    public var wireAPI: String { "responses" }
 }

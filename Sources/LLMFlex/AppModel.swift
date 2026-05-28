@@ -144,11 +144,29 @@ final class AppModel {
 
     func cleanupLegacy() {
         do {
+            // 1. Strip SwitchCode artifacts from the CURRENT config. Keep
+            //    our active managed block in place.
             let url = codex.configURL
             let existing = (try? String(contentsOf: url, encoding: .utf8)) ?? ""
             let cleaned = migrator.clean(existing)
             try cleaned.write(to: url, atomically: true, encoding: .utf8)
-            lastApplyMessage = "Cleaned up legacy SwitchCode entries."
+
+            // 2. Also scrub the snapshot: remove SwitchCode artifacts AND
+            //    any LLM Flex managed block. The snapshot should represent
+            //    Codex AS IF LLM Flex (and the broken v1) had never touched
+            //    it — so a future Restore unwinds cleanly to that baseline.
+            let snap = codex.snapshots.snapshotURL(for: url, tag: CodexTarget.snapshotTag)
+            if FileManager.default.fileExists(atPath: snap.path) {
+                let snapContent = try String(contentsOf: snap, encoding: .utf8)
+                let snapCleaned = migrator.clean(snapContent)
+                let editor = TOMLBlockEditor(
+                    startMarker: CodexTarget.blockStartMarker,
+                    endMarker: CodexTarget.blockEndMarker
+                )
+                let snapStripped = editor.strip(source: snapCleaned)
+                try snapStripped.write(to: snap, atomically: true, encoding: .utf8)
+            }
+            lastApplyMessage = "Cleaned up legacy SwitchCode entries and reset snapshot baseline."
         } catch {
             lastError = error.localizedDescription
         }

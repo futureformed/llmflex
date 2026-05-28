@@ -1,10 +1,19 @@
 import XCTest
 @testable import LLMFlexCore
 
+/// Mock launchd that just records calls.
+final class RecordingLaunchdEnv: LaunchdEnvironment, @unchecked Sendable {
+    var setCalls: [(String, String)] = []
+    var unsetCalls: [String] = []
+    func setenv(_ name: String, _ value: String) { setCalls.append((name, value)) }
+    func unsetenv(_ name: String) { unsetCalls.append(name) }
+}
+
 final class CodexTargetTests: XCTestCase {
     var tmp: URL!
     var configURL: URL!
     var authURL: URL!
+    var launchd: RecordingLaunchdEnv!
     var target: CodexTarget!
 
     override func setUpWithError() throws {
@@ -14,13 +23,15 @@ final class CodexTargetTests: XCTestCase {
         configURL = tmp.appendingPathComponent("config.toml")
         authURL = tmp.appendingPathComponent("auth.json")
         let snapshots = SnapshotStore(root: tmp.appendingPathComponent("snapshots"))
+        launchd = RecordingLaunchdEnv()
         // Use authURL = /dev/null to make the detector report .unauthed regardless of test FS.
         target = CodexTarget(
             configURL: configURL,
             authURL: authURL,
             snapshots: snapshots,
             detector: CodexAuthStateDetector(authURL: URL(fileURLWithPath: "/dev/null")),
-            appController: CodexAppController(bundleIdentifier: "cc.test.does-not-exist")
+            appController: CodexAppController(bundleIdentifier: "cc.test.does-not-exist"),
+            launchdEnv: launchd
         )
     }
 
@@ -131,6 +142,36 @@ final class CodexTargetTests: XCTestCase {
                 XCTFail("expected .blocked(.chatgptLoginActive), got \(error)"); return
             }
         }
+    }
+
+    func testApplySetsLaunchdEnv() throws {
+        try "{}".write(to: authURL, atomically: true, encoding: .utf8)
+        let p = Profile(name: "OR", provider: .openrouter,
+                        baseURL: "https://openrouter.ai/api/v1",
+                        modelName: "any")
+        try target.apply(profile: p, apiKey: "sk-launchd-test")
+        XCTAssertEqual(launchd.setCalls.count, 1)
+        XCTAssertEqual(launchd.setCalls.first?.0, "OPENAI_API_KEY")
+        XCTAssertEqual(launchd.setCalls.first?.1, "sk-launchd-test")
+    }
+
+    func testRestoreUnsetsLaunchdEnv() throws {
+        try "model = \"foo\"".write(to: configURL, atomically: true, encoding: .utf8)
+        try "{}".write(to: authURL, atomically: true, encoding: .utf8)
+        let p = Profile(name: "OR", provider: .openrouter, baseURL: "https://x", modelName: "y")
+        try target.apply(profile: p, apiKey: "sk-test")
+        _ = try target.restore()
+        XCTAssertEqual(launchd.unsetCalls, ["OPENAI_API_KEY"])
+    }
+
+    func testApplyWithEmptyKeyUsesOllamaFallback() throws {
+        try "{}".write(to: authURL, atomically: true, encoding: .utf8)
+        let p = Profile(name: "Ollama", provider: .ollama,
+                        baseURL: "http://localhost:11434/v1",
+                        modelName: "qwen")
+        try target.apply(profile: p, apiKey: "")
+        // Ollama doesn't require a key, so we send a placeholder.
+        XCTAssertEqual(launchd.setCalls.first?.1, "ollama-local")
     }
 
     func testApplyTwiceIsIdempotent() throws {

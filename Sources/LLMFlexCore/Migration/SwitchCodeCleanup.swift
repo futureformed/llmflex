@@ -48,8 +48,38 @@ public struct SwitchCodeCleanup: Sendable {
 
             out.append(line)
         }
-        // Collapse any runs of more than two consecutive blank lines.
-        return collapseBlankRuns(out).joined(separator: "\n")
+        let withoutEmptyEnv = removeOrphanedEnvSection(out)
+        return collapseBlankRuns(withoutEmptyEnv).joined(separator: "\n")
+    }
+
+    /// After removing `SWITCHCODE_API_KEY = "..."`, the `[env]` section that
+    /// used to hold it is often left empty. Drop the orphan header (and any
+    /// blank lines belonging to it) so we don't leave dead section markers.
+    private func removeOrphanedEnvSection(_ lines: [String]) -> [String] {
+        var out: [String] = []
+        var i = 0
+        while i < lines.count {
+            let line = lines[i]
+            if line.trimmingCharacters(in: .whitespaces) == "[env]" {
+                // Look ahead — if every line until the next [section] header
+                // (or EOF) is blank, drop the whole run.
+                var j = i + 1
+                var allBlank = true
+                while j < lines.count {
+                    let t = lines[j].trimmingCharacters(in: .whitespaces)
+                    if t.hasPrefix("[") && t.hasSuffix("]") { break }
+                    if !t.isEmpty { allBlank = false; break }
+                    j += 1
+                }
+                if allBlank {
+                    i = j
+                    continue
+                }
+            }
+            out.append(line)
+            i += 1
+        }
+        return out
     }
 
     private func collapseBlankRuns(_ lines: [String]) -> [String] {

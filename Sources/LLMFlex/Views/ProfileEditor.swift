@@ -19,53 +19,50 @@ struct ProfileEditor: View {
         VStack(alignment: .leading, spacing: 0) {
             header
             Divider()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
-                    field("Name") {
-                        TextField("OpenRouter — Sonnet 4", text: $name)
-                            .textFieldStyle(.roundedBorder)
-                    }
-                    field("Provider") {
-                        Picker("", selection: $provider) {
-                            ForEach(Provider.allCases) { p in
-                                Text(p.displayName).tag(p)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .onChange(of: provider) { _, new in
-                            if baseURL.isEmpty || baseURL == provider.defaultBaseURL {
-                                baseURL = new.defaultBaseURL
-                            }
-                        }
-                    }
-                    field("Base URL") {
-                        TextField("https://…", text: $baseURL)
-                            .textFieldStyle(.roundedBorder)
-                            .font(Theme.Fonts.mono(12))
-                    }
-                    if provider.requiresAPIKey {
-                        field("API key") {
-                            SecureField("sk-…", text: $apiKey)
-                                .textFieldStyle(.roundedBorder)
-                            Text("Stored in your macOS Keychain only.")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    field("Model") {
-                        TextField("anthropic/claude-sonnet-4-…", text: $modelName)
-                            .textFieldStyle(.roundedBorder)
-                            .font(Theme.Fonts.mono(12))
-                    }
-                    testRow
+            VStack(alignment: .leading, spacing: 14) {
+                field("Name") {
+                    TextField("OpenRouter — Sonnet 4", text: $name)
+                        .textFieldStyle(.roundedBorder)
                 }
-                .padding(Theme.Metric.outerPadding)
+                field("Provider") {
+                    Picker("", selection: $provider) {
+                        ForEach(Provider.allCases) { p in
+                            Text(p.displayName).tag(p)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                    .onChange(of: provider) { _, new in
+                        if baseURL.isEmpty || baseURL == provider.defaultBaseURL {
+                            baseURL = new.defaultBaseURL
+                        }
+                    }
+                }
+                field("Base URL") {
+                    TextField("https://…", text: $baseURL)
+                        .textFieldStyle(.roundedBorder)
+                        .font(Theme.Fonts.mono(12))
+                }
+                if provider.requiresAPIKey {
+                    field("API key") {
+                        SecureField("sk-…", text: $apiKey)
+                            .textFieldStyle(.roundedBorder)
+                        Text("Stored in your macOS Keychain only.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                field("Model") {
+                    TextField("anthropic/claude-sonnet-4-…", text: $modelName)
+                        .textFieldStyle(.roundedBorder)
+                        .font(Theme.Fonts.mono(12))
+                }
+                testRow
             }
+            .padding(Theme.Metric.outerPadding)
             Divider()
             footer
         }
-        .frame(width: Theme.Metric.popoverWidth, height: 480)
-        .background(.regularMaterial)
         .onAppear(perform: loadFromProfile)
     }
 

@@ -6,36 +6,40 @@ struct PopoverView: View {
     @State private var statusTimerActive = false
 
     var body: some View {
+        Group {
+            if model.isShowingEditor {
+                ProfileEditor(model: model, profile: model.editingProfile)
+            } else {
+                mainContent
+            }
+        }
+        .frame(width: Theme.Metric.popoverWidth)
+        .background(.regularMaterial)
+        .onAppear { model.reload() }
+    }
+
+    private var mainContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
             Divider()
-            ScrollView {
-                VStack(alignment: .leading, spacing: Theme.Metric.sectionGap) {
-                    StatusSection(model: model)
-                    if model.isBlockedByChatGPT {
-                        BlockedBanner()
-                    }
-                    if model.legacyCleanupAvailable {
-                        LegacyCleanupBanner {
-                            model.cleanupLegacy()
-                        }
-                    }
-                    Divider()
-                    profilesSection
+            VStack(alignment: .leading, spacing: Theme.Metric.sectionGap) {
+                StatusSection(model: model)
+                if model.isBlockedByChatGPT {
+                    BlockedBanner()
                 }
-                .padding(.horizontal, Theme.Metric.outerPadding)
-                .padding(.vertical, Theme.Metric.sectionGap)
+                if model.legacyCleanupAvailable {
+                    LegacyCleanupBanner {
+                        model.cleanupLegacy()
+                    }
+                }
+                Divider()
+                profilesSection
             }
+            .padding(.horizontal, Theme.Metric.outerPadding)
+            .padding(.vertical, Theme.Metric.sectionGap)
             Divider()
             footer
         }
-        .frame(width: Theme.Metric.popoverWidth)
-        .frame(maxHeight: 560)
-        .background(.regularMaterial)
-        .sheet(isPresented: $model.isShowingEditor) {
-            ProfileEditor(model: model, profile: model.editingProfile)
-        }
-        .onAppear { model.reload() }
     }
 
     // MARK: - Sections
