@@ -2,7 +2,7 @@ import Foundation
 
 public enum TargetID: String, Codable, CaseIterable, Sendable {
     case codex
-    // case claudeCode — future
+    case claudeCode = "claude_code"
 }
 
 /// Ground-truth view of what a target currently has configured. Built by

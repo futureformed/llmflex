@@ -1,9 +1,14 @@
 import Foundation
 
-public enum CodexCompatibility: String, Codable, Sendable {
-    case native       // Speaks OpenAI Responses API
-    case incompatible // Won't work with Codex directly — needs a proxy
+/// Binary "does this provider talk to this target's native API?" status.
+/// Same enum is reused for every target (Codex, Claude Code, future targets).
+public enum TargetCompatibility: String, Codable, Sendable {
+    case native       // Speaks the target's wire format directly
+    case incompatible // Won't work without a translating proxy
 }
+
+/// Back-compat alias — UI code still references `CodexCompatibility`.
+public typealias CodexCompatibility = TargetCompatibility
 
 public enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
     // Codex-native (speak the OpenAI Responses API)
@@ -58,33 +63,52 @@ public enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// Whether Codex (which now requires `wire_api = "responses"`) can talk
-    /// to this provider directly.
-    public var codexCompatibility: CodexCompatibility {
-        switch self {
-        case .openai, .openrouter, .lmStudio, .openaiCompatible, .custom:
-            return .native
-        case .ollama, .anthropic, .gemini, .opencodeGo:
-            return .incompatible
+    /// Compatibility for a given target. Codex requires `wire_api = "responses"`
+    /// (OpenAI Responses API). Claude Code requires Anthropic Messages format.
+    public func compatibility(for target: TargetID) -> TargetCompatibility {
+        switch target {
+        case .codex:
+            switch self {
+            case .openai, .openrouter, .lmStudio, .openaiCompatible, .custom: return .native
+            case .ollama, .anthropic, .gemini, .opencodeGo: return .incompatible
+            }
+        case .claudeCode:
+            switch self {
+            case .anthropic, .opencodeGo, .custom: return .native
+            case .openai, .openrouter, .lmStudio, .openaiCompatible, .ollama, .gemini: return .incompatible
+            }
         }
     }
 
-    /// One-line explanation when Codex can't reach this provider directly.
-    /// `nil` when the provider is Codex-native.
-    public var codexIncompatibilityReason: String? {
-        switch self {
-        case .openai, .openrouter, .lmStudio, .openaiCompatible, .custom:
-            return nil
-        case .ollama:
-            return "Ollama only speaks chat-completions. Codex now requires the Responses API."
-        case .anthropic:
-            return "Anthropic uses its own Messages API. Not compatible with Codex's Responses requirement."
-        case .gemini:
-            return "Gemini uses Google's own format. Not compatible with Codex's Responses requirement."
-        case .opencodeGo:
-            return "Opencode Go uses chat-completions or Anthropic-messages endpoints, neither of which is the Responses API."
+    /// Human-readable reason this provider can't reach the given target
+    /// directly. `nil` when native.
+    public func incompatibilityReason(for target: TargetID) -> String? {
+        guard compatibility(for: target) == .incompatible else { return nil }
+        switch target {
+        case .codex:
+            switch self {
+            case .ollama:     return "Ollama only speaks chat-completions. Codex now requires the Responses API."
+            case .anthropic:  return "Anthropic uses its own Messages API. Codex needs OpenAI Responses."
+            case .gemini:     return "Gemini uses Google's own format. Codex needs OpenAI Responses."
+            case .opencodeGo: return "Opencode Go uses chat-completions or Anthropic-messages — not the Responses API."
+            default: return nil
+            }
+        case .claudeCode:
+            switch self {
+            case .openai:           return "OpenAI uses its Responses API, not Anthropic Messages."
+            case .openrouter:       return "OpenRouter is OpenAI-compatible by default — not Anthropic Messages."
+            case .lmStudio:         return "LM Studio is OpenAI-compatible — not Anthropic Messages."
+            case .openaiCompatible: return "OpenAI-compatible providers don't speak the Anthropic Messages API."
+            case .ollama:           return "Ollama is OpenAI-compatible — not Anthropic Messages."
+            case .gemini:           return "Gemini uses Google's format — not Anthropic Messages."
+            default: return nil
+            }
         }
     }
+
+    // MARK: - Back-compat shims (still used by older call sites)
+    public var codexCompatibility: TargetCompatibility { compatibility(for: .codex) }
+    public var codexIncompatibilityReason: String? { incompatibilityReason(for: .codex) }
 
     /// Codex (as of mid-2026) requires `wire_api = "responses"` — chat
     /// completions are no longer accepted. OpenRouter has a Responses-API-
