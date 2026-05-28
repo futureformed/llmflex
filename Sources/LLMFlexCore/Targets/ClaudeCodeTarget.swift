@@ -86,11 +86,21 @@ public final class ClaudeCodeTarget: Target, @unchecked Sendable {
         }
         var env = dict["env"] as? [String: Any] ?? [:]
         env["ANTHROPIC_BASE_URL"] = profile.baseURL
+        // Anthropic's CLI warns when BOTH AUTH_TOKEN and API_KEY are set
+        // because they take different code paths server-side. We pick the
+        // correct one based on the provider's auth scheme and explicitly
+        // remove the other to clear any stale value from a previous apply.
         if !apiKey.isEmpty {
-            // Auth token is preferred (sent as Bearer); api_key is the fallback
-            // (sent as x-api-key) for providers that don't accept Bearer.
-            env["ANTHROPIC_AUTH_TOKEN"] = apiKey
-            env["ANTHROPIC_API_KEY"] = apiKey
+            switch profile.provider.authScheme {
+            case .anthropicHeaders:
+                // Direct Anthropic API → x-api-key flavor.
+                env["ANTHROPIC_API_KEY"] = apiKey
+                env.removeValue(forKey: "ANTHROPIC_AUTH_TOKEN")
+            case .bearer, .googleQueryParam:
+                // Gateways (LiteLLM, Opencode Go, custom proxies) → Bearer.
+                env["ANTHROPIC_AUTH_TOKEN"] = apiKey
+                env.removeValue(forKey: "ANTHROPIC_API_KEY")
+            }
         }
         dict["env"] = env
 

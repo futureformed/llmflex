@@ -41,10 +41,50 @@ final class ClaudeCodeTargetTests: XCTestCase {
                        "must preserve unrelated user keys")
         let env = try XCTUnwrap(dict["env"] as? [String: Any])
         XCTAssertEqual(env["ANTHROPIC_BASE_URL"] as? String, "https://api.anthropic.com/v1")
-        XCTAssertEqual(env["ANTHROPIC_AUTH_TOKEN"] as? String, "sk-ant-test")
+        // Anthropic-direct path uses x-api-key, not Bearer.
         XCTAssertEqual(env["ANTHROPIC_API_KEY"] as? String, "sk-ant-test")
+        XCTAssertNil(env["ANTHROPIC_AUTH_TOKEN"],
+                     "Anthropic provider must use API_KEY only — both set triggers a Claude Code warning")
         XCTAssertEqual(env["MY_OTHER_VAR"] as? String, "keep-me",
                        "must preserve unrelated env entries")
+    }
+
+    func testApplyForGatewayUsesAuthTokenNotApiKey() throws {
+        let p = Profile(name: "Opencode",
+                        provider: .opencodeGo,
+                        baseURL: "https://opencode.ai/zen/go/v1",
+                        modelName: "opencode-go/qwen3.7-max")
+        try target.apply(profile: p, apiKey: "sk-zen-test")
+        let dict = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: try Data(contentsOf: settingsURL)) as? [String: Any]
+        )
+        let env = try XCTUnwrap(dict["env"] as? [String: Any])
+        // Gateway path uses Bearer, not x-api-key.
+        XCTAssertEqual(env["ANTHROPIC_AUTH_TOKEN"] as? String, "sk-zen-test")
+        XCTAssertNil(env["ANTHROPIC_API_KEY"])
+    }
+
+    func testReapplyClearsStaleAuthVariant() throws {
+        // Apply Anthropic (sets ANTHROPIC_API_KEY)
+        let anth = Profile(name: "A", provider: .anthropic,
+                           baseURL: "https://api.anthropic.com/v1",
+                           modelName: "claude-sonnet-4-6")
+        try target.apply(profile: anth, apiKey: "sk-ant-1")
+
+        // Then re-apply a gateway profile (should clear ANTHROPIC_API_KEY,
+        // set ANTHROPIC_AUTH_TOKEN).
+        let gw = Profile(name: "G", provider: .opencodeGo,
+                         baseURL: "https://opencode.ai/zen/go/v1",
+                         modelName: "opencode-go/glm-5.1")
+        try target.apply(profile: gw, apiKey: "sk-zen-2")
+
+        let dict = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: try Data(contentsOf: settingsURL)) as? [String: Any]
+        )
+        let env = try XCTUnwrap(dict["env"] as? [String: Any])
+        XCTAssertEqual(env["ANTHROPIC_AUTH_TOKEN"] as? String, "sk-zen-2")
+        XCTAssertNil(env["ANTHROPIC_API_KEY"],
+                     "stale API_KEY from previous Anthropic apply must be cleared")
     }
 
     func testApplyOnFreshSettingsFile() throws {
