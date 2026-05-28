@@ -5,26 +5,30 @@ struct StatusSection: View {
     let status: TargetStatus
     let title: String
     let iconSystemName: String
+    let activeProvider: Provider?
 
     private var isActive: Bool { status.activeProviderKey != nil }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
                 Image(systemName: iconSystemName)
                     .foregroundStyle(isActive ? Theme.activeAccent : .secondary)
+                    .font(.system(size: 14, weight: .semibold))
                 Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
+                    .font(Theme.Fonts.bodyBold)
                 Spacer()
                 authBadge
             }
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 Circle()
                     .fill(isActive ? Theme.activeAccent : .secondary)
-                    .frame(width: 6, height: 6)
+                    .frame(width: 7, height: 7)
+                if let provider = activeProvider {
+                    ProviderBadge(provider: provider, size: 16)
+                }
                 Text(activeLine)
-                    .font(.caption)
+                    .font(Theme.Fonts.body)
                     .fontWeight(isActive ? .semibold : .regular)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
@@ -32,15 +36,15 @@ struct StatusSection: View {
             }
             if let m = status.activeModel {
                 Text(m)
-                    .font(Theme.Fonts.mono(11))
+                    .font(Theme.Fonts.mono(12))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
         }
-        .padding(.leading, 10)
-        .padding(.vertical, 8)
-        .padding(.trailing, 6)
+        .padding(.leading, 12)
+        .padding(.vertical, 10)
+        .padding(.trailing, 10)
         .overlay(alignment: .leading) {
             if isActive {
                 Rectangle()
@@ -48,8 +52,8 @@ struct StatusSection: View {
                     .frame(width: 3)
             }
         }
-        .background(isActive ? Theme.activeAccent.opacity(0.12) : Color.clear)
-        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .background(isActive ? Theme.activeBackground.opacity(0.45) : Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
     private var activeLine: String {
@@ -76,7 +80,7 @@ struct StatusSection: View {
 
     private func badge(_ text: String, systemImage: String, color: Color) -> some View {
         Label(text, systemImage: systemImage)
-            .font(.caption2)
+            .font(Theme.Fonts.meta)
             .foregroundStyle(color)
     }
 }

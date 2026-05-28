@@ -25,20 +25,16 @@ struct ProfileEditor: View {
                         .textFieldStyle(.roundedBorder)
                 }
                 field("Provider") {
-                    Picker("", selection: $provider) {
-                        ForEach(Provider.allCases) { p in
-                            HStack {
-                                Text(p.displayName)
-                                if p.codexCompatibility == .incompatible {
-                                    Image(systemName: "exclamationmark.triangle.fill")
-                                        .foregroundStyle(.orange)
-                                }
+                    HStack(spacing: 8) {
+                        ProviderBadge(provider: provider, size: 18)
+                        Picker("", selection: $provider) {
+                            ForEach(Provider.allCases) { p in
+                                Text(p.displayName).tag(p)
                             }
-                            .tag(p)
                         }
+                        .pickerStyle(.menu)
+                        .labelsHidden()
                     }
-                    .pickerStyle(.menu)
-                    .labelsHidden()
                     .onChange(of: provider) { old, new in
                         // Only auto-swap baseURL if the user hadn't customised
                         // it — i.e. it still matches the previous provider's
@@ -59,7 +55,7 @@ struct ProfileEditor: View {
                         SecureField("sk-…", text: $apiKey)
                             .textFieldStyle(.roundedBorder)
                         Text("Stored in your macOS Keychain only.")
-                            .font(.caption2)
+                            .font(Theme.Fonts.meta)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -113,7 +109,7 @@ struct ProfileEditor: View {
             }
             .buttonStyle(.borderless)
             Text(profile == nil ? "Add profile" : "Edit profile")
-                .font(.headline)
+                .font(Theme.Fonts.title)
             Spacer()
         }
         .padding(.horizontal, Theme.Metric.outerPadding)
@@ -137,8 +133,8 @@ struct ProfileEditor: View {
 
                 if let r = testResult, r.ok {
                     Label(r.message, systemImage: "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(Theme.accent)
+                        .font(Theme.Fonts.body)
+                        .foregroundStyle(Theme.activeAccent)
                 }
                 Spacer()
             }
@@ -150,7 +146,7 @@ struct ProfileEditor: View {
                         .foregroundStyle(.orange)
                         .font(.caption)
                     Text(r.message)
-                        .font(.caption)
+                        .font(Theme.Fonts.body)
                         .foregroundStyle(.orange)
                         .fixedSize(horizontal: false, vertical: true)
                         .textSelection(.enabled)
@@ -170,7 +166,7 @@ struct ProfileEditor: View {
                     }
                 } label: {
                     Label("Delete", systemImage: "trash")
-                        .font(.caption)
+                        .font(Theme.Fonts.body)
                 }
                 .buttonStyle(.borderless)
             }
@@ -192,12 +188,11 @@ struct ProfileEditor: View {
     }
 
     private func field<Content: View>(_ label: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(label.uppercased())
-                .font(.caption2)
-                .fontWeight(.semibold)
+                .font(Theme.Fonts.label)
                 .foregroundStyle(.secondary)
-                .kerning(0.5)
+                .kerning(0.8)
             content()
         }
     }

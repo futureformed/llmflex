@@ -85,8 +85,10 @@ final class AppModel {
     /// True if any target the profile would apply to currently points at it.
     func isApplied(_ profile: Profile) -> Bool {
         for target in applicableTargets(for: profile) {
-            let baseURL = status(for: target).activeBaseURL
-            if baseURL == profile.baseURL { return true }
+            if let onDisk = status(for: target).activeBaseURL,
+               profileMatches(profile, baseURL: onDisk) {
+                return true
+            }
         }
         return false
     }
@@ -96,6 +98,26 @@ final class AppModel {
         case .codex: return codexStatus
         case .claudeCode: return claudeCodeStatus
         }
+    }
+
+    /// The profile currently matching the on-disk state of `target`, if any.
+    /// Used by the UI to render the active provider's badge.
+    func activeProfile(for target: TargetID) -> Profile? {
+        let s = status(for: target)
+        guard let baseURL = s.activeBaseURL else { return nil }
+        return profiles.first { p in
+            applicableTargets(for: p).contains(target) && profileMatches(p, baseURL: baseURL)
+        }
+    }
+
+    /// Profile.baseURL may include /v1 while a target's on-disk URL may not
+    /// (e.g. Claude Code strips it for ANTHROPIC_BASE_URL). Match on prefix
+    /// either way so the UI lights up correctly.
+    private func profileMatches(_ profile: Profile, baseURL onDisk: String) -> Bool {
+        if profile.baseURL == onDisk { return true }
+        if profile.baseURL.hasPrefix(onDisk) { return true }
+        if onDisk.hasPrefix(profile.baseURL) { return true }
+        return false
     }
 
     var isBlockedByChatGPT: Bool {

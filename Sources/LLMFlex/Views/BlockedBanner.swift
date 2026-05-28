@@ -8,10 +8,10 @@ struct BlockedBanner: View {
                 .padding(.top, 2)
             VStack(alignment: .leading, spacing: 4) {
                 Text("Sign out of ChatGPT in Codex first")
-                    .font(.caption)
+                    .font(Theme.Fonts.body)
                     .fontWeight(.semibold)
                 Text("Codex.app refreshes its ChatGPT tokens on every launch and will overwrite the API key you set here. Sign out in Codex → Settings → Account, then come back.")
-                    .font(.caption2)
+                    .font(Theme.Fonts.meta)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -36,15 +36,15 @@ struct LegacyCleanupBanner: View {
                 .padding(.top, 2)
             VStack(alignment: .leading, spacing: 4) {
                 Text("Legacy SwitchCode entries found")
-                    .font(.caption)
+                    .font(Theme.Fonts.body)
                     .fontWeight(.semibold)
                 Text("Earlier broken builds left junk in config.toml. Clean it up so future switches stay tidy.")
-                    .font(.caption2)
+                    .font(Theme.Fonts.meta)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 Button("Clean up now", action: onCleanup)
                     .buttonStyle(.borderless)
-                    .font(.caption)
+                    .font(Theme.Fonts.body)
                     .padding(.top, 2)
             }
         }

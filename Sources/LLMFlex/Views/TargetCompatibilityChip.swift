@@ -28,11 +28,11 @@ struct TargetCompatibilityChip: View {
                 .font(.caption2)
             VStack(alignment: .leading, spacing: 2) {
                 Text(label(target) + (native ? " — works directly" : " — needs proxy"))
-                    .font(.caption2)
+                    .font(Theme.Fonts.meta)
                     .fontWeight(.semibold)
                 if !native, let reason = provider.incompatibilityReason(for: target) {
                     Text(reason)
-                        .font(.caption2)
+                        .font(Theme.Fonts.meta)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }

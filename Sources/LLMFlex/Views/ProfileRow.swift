@@ -13,45 +13,46 @@ struct ProfileRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
-            // Active dot — purple to match the status panel's "live" treatment.
+            // Active dot — green to match the status panel's "live" treatment.
             Circle()
                 .fill(isApplied ? Theme.activeAccent : Color.secondary.opacity(0.35))
-                .frame(width: 8, height: 8)
-                .padding(.top, 6)
+                .frame(width: 9, height: 9)
+                .padding(.top, 7)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
+                    ProviderBadge(provider: profile.provider, size: 16)
                     Text(profile.name)
-                        .font(.callout)
+                        .font(Theme.Fonts.body)
                         .fontWeight(.medium)
                     if isApplied {
                         Text("active")
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
+                            .font(Theme.Fonts.label)
+                            .padding(.horizontal, 7)
                             .padding(.vertical, 2)
-                            .background(Theme.activeAccent.opacity(0.18))
+                            .background(Theme.activeAccent.opacity(0.22))
                             .foregroundStyle(Theme.activeAccent)
                             .clipShape(Capsule())
                     }
                     if profile.provider.codexCompatibility == .incompatible {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.caption2)
+                            .font(.system(size: 11))
                             .foregroundStyle(.orange)
                             .help("Codex won't talk to this directly — needs a proxy or non-Codex target.")
                     }
                 }
                 Text(metaLine)
-                    .font(Theme.Fonts.mono(11))
+                    .font(Theme.Fonts.mono(12))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 if !targetLabels.isEmpty {
                     HStack(spacing: 4) {
                         Image(systemName: "arrow.forward")
-                            .font(.system(size: 8))
+                            .font(.system(size: 9))
                             .foregroundStyle(.secondary)
                         Text(targetLabels.joined(separator: " · "))
-                            .font(.caption2)
+                            .font(Theme.Fonts.meta)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -69,10 +70,10 @@ struct ProfileRow: View {
                 }
             } label: {
                 Image(systemName: "ellipsis.circle")
-                    .imageScale(.medium)
+                    .imageScale(.large)
             }
             .menuStyle(.borderlessButton)
-            .frame(width: 22)
+            .frame(width: 24)
         }
         .contentShape(Rectangle())
         .onTapGesture {

@@ -9,17 +9,16 @@ struct EmptyStateView: View {
                 .font(.title)
                 .foregroundStyle(.secondary)
             Text("No profiles yet")
-                .font(.subheadline)
-                .fontWeight(.medium)
-            Text("Add one for OpenRouter, Ollama, or your own endpoint.")
-                .font(.caption)
+                .font(Theme.Fonts.title)
+            Text("Add one for OpenRouter, Anthropic, OpenAI, or any other supported provider.")
+                .font(Theme.Fonts.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             Button {
                 onAdd()
             } label: {
                 Label("Add profile", systemImage: "plus")
-                    .font(.callout)
+                    .font(Theme.Fonts.body)
             }
             .buttonStyle(.bordered)
             .controlSize(.regular)

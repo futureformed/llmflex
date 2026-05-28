@@ -14,7 +14,7 @@ struct PopoverView: View {
             }
         }
         .frame(width: Theme.Metric.popoverWidth)
-        .background(.regularMaterial)
+        .background(.thickMaterial)
         .onAppear { model.reload() }
     }
 
@@ -23,16 +23,18 @@ struct PopoverView: View {
             header
             Divider()
             VStack(alignment: .leading, spacing: Theme.Metric.sectionGap) {
-                VStack(spacing: 6) {
+                VStack(spacing: 8) {
                     StatusSection(
                         status: model.codexStatus,
                         title: "Codex",
-                        iconSystemName: "terminal"
+                        iconSystemName: "terminal",
+                        activeProvider: model.activeProfile(for: .codex)?.provider
                     )
                     StatusSection(
                         status: model.claudeCodeStatus,
                         title: "Claude Code",
-                        iconSystemName: "sparkles"
+                        iconSystemName: "sparkles",
+                        activeProvider: model.activeProfile(for: .claudeCode)?.provider
                     )
                 }
                 if model.isBlockedByChatGPT {
@@ -56,40 +58,40 @@ struct PopoverView: View {
     // MARK: - Sections
 
     private var header: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             Image(systemName: "arrow.left.arrow.right.circle.fill")
                 .foregroundStyle(Theme.accent)
-                .font(.title3)
+                .font(.title2)
             Text("LLM Flex")
-                .font(.headline)
+                .font(Theme.Fonts.title)
             Spacer()
             Button {
                 NSApp.terminate(nil)
             } label: {
                 Image(systemName: "power")
+                    .imageScale(.large)
             }
             .buttonStyle(.borderless)
             .help("Quit LLM Flex")
         }
         .padding(.horizontal, Theme.Metric.outerPadding)
-        .padding(.vertical, 10)
+        .padding(.vertical, 12)
     }
 
     private var profilesSection: some View {
         VStack(alignment: .leading, spacing: Theme.Metric.rowGap) {
             HStack {
                 Text("PROFILES")
-                    .font(.caption)
-                    .fontWeight(.semibold)
+                    .font(Theme.Fonts.label)
                     .foregroundStyle(.secondary)
-                    .kerning(0.6)
+                    .kerning(0.8)
                 Spacer()
                 Button {
                     model.startAdding()
                 } label: {
                     Label("Add", systemImage: "plus")
                         .labelStyle(.titleAndIcon)
-                        .font(.caption)
+                        .font(Theme.Fonts.body)
                 }
                 .buttonStyle(.borderless)
                 .llmAccentTint()
@@ -111,13 +113,13 @@ struct PopoverView: View {
             }
             if let message = model.lastApplyMessage {
                 Label(message, systemImage: "checkmark.circle.fill")
-                    .font(.caption)
-                    .foregroundStyle(Theme.accent)
+                    .font(Theme.Fonts.meta)
+                    .foregroundStyle(Theme.activeAccent)
                     .padding(.top, 4)
             }
             if let error = model.lastError {
                 Label(error, systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption)
+                    .font(Theme.Fonts.meta)
                     .foregroundStyle(.orange)
                     .padding(.top, 4)
             }
@@ -130,7 +132,7 @@ struct PopoverView: View {
                 model.restoreDefaults()
             } label: {
                 Label("Restore defaults", systemImage: "arrow.uturn.backward")
-                    .font(.caption)
+                    .font(Theme.Fonts.body)
             }
             .buttonStyle(.borderless)
             .help("Restore Codex and Claude Code to the state they were in before LLM Flex first touched them.")
@@ -142,13 +144,13 @@ struct PopoverView: View {
                     model.relaunchCodex()
                 } label: {
                     Label("Relaunch Codex", systemImage: "arrow.clockwise")
-                        .font(.caption)
+                        .font(Theme.Fonts.body)
                 }
                 .buttonStyle(.borderless)
                 .llmAccentTint()
             }
         }
         .padding(.horizontal, Theme.Metric.outerPadding)
-        .padding(.vertical, 10)
+        .padding(.vertical, 12)
     }
 }
