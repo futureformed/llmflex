@@ -39,8 +39,11 @@ struct ProfileEditor: View {
                     }
                     .pickerStyle(.menu)
                     .labelsHidden()
-                    .onChange(of: provider) { _, new in
-                        if baseURL.isEmpty || baseURL == provider.defaultBaseURL {
+                    .onChange(of: provider) { old, new in
+                        // Only auto-swap baseURL if the user hadn't customised
+                        // it — i.e. it still matches the previous provider's
+                        // default (or is empty for OpenAI-compatible / Custom).
+                        if baseURL.isEmpty || baseURL == old.defaultBaseURL {
                             baseURL = new.defaultBaseURL
                         }
                     }

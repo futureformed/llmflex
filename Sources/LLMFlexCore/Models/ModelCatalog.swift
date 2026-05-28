@@ -65,21 +65,35 @@ public enum ModelCatalog {
     // MARK: - OpenRouter
 
     public static let openrouter: [CatalogEntry] = [
-        .init(id: "openai/gpt-5.5",                 label: "GPT-5.5",                 notes: "OpenAI frontier via OpenRouter."),
-        .init(id: "openai/gpt-5.4-pro",             label: "GPT-5.4 Pro",             notes: "Advanced reasoning, high-stakes coding."),
-        .init(id: "openai/gpt-5.4",                 label: "GPT-5.4",                 notes: "1M+ context, strong coding."),
-        .init(id: "anthropic/claude-opus-4.8",      label: "Claude Opus 4.8",         notes: "Anthropic's top, with reasoning + file inputs."),
-        .init(id: "anthropic/claude-opus-4.8-fast", label: "Claude Opus 4.8 Fast",    notes: "Same as Opus 4.8 with higher output speed."),
-        .init(id: "anthropic/claude-opus-4.7",      label: "Claude Opus 4.7",         notes: "Long-running agents, enhanced coding."),
-        .init(id: "deepseek/deepseek-v4-pro",       label: "DeepSeek V4 Pro",         notes: "1.6T MoE for advanced reasoning + coding."),
-        .init(id: "google/gemini-3.5-flash",        label: "Gemini 3.5 Flash",        notes: "Near-Pro coding at Flash speed and cost."),
-        .init(id: "qwen/qwen3.7-max",               label: "Qwen3.7 Max",             notes: "Flagship Qwen — coding strengths."),
-        .init(id: "qwen/qwen3.6-max-preview",      label: "Qwen3.6 Max Preview",     notes: "Sparse MoE optimized for agentic coding."),
-        .init(id: "x-ai/grok-4.20",                 label: "Grok 4.20",               notes: "Industry-leading speed, low hallucination."),
-        .init(id: "mistralai/mistral-medium-3.5",   label: "Mistral Medium 3.5",      notes: "Dense 128B — agentic workflows."),
-        .init(id: "z-ai/glm-5.1",                   label: "GLM-5.1",                 notes: "Long-horizon autonomous coding."),
-        .init(id: "xiaomi/mimo-v2.5-pro",            label: "MiMo-V2.5 Pro",           notes: "1T params, optimized for agentic coding."),
-        .init(id: "tencent/hy3-preview",            label: "Hy3 Preview",             notes: "Efficient MoE with configurable reasoning."),
+        // OpenAI
+        .init(id: "openai/gpt-5.5",                  label: "GPT-5.5",                  notes: "OpenAI frontier — deep reasoning for complex pro work."),
+        .init(id: "openai/gpt-5.5-pro",              label: "GPT-5.5 Pro",              notes: "Highest-accuracy GPT for high-stakes work."),
+        .init(id: "openai/gpt-5.4",                  label: "GPT-5.4",                  notes: "Strong coding across 1M+ context."),
+        .init(id: "openai/gpt-5.4-mini",             label: "GPT-5.4 Mini",             notes: "Faster, cheaper GPT-5.4 variant."),
+        // Anthropic
+        .init(id: "anthropic/claude-opus-4.8",       label: "Claude Opus 4.8",          notes: "Anthropic's top — reasoning + file inputs."),
+        .init(id: "anthropic/claude-opus-4.8-fast",  label: "Claude Opus 4.8 Fast",     notes: "Opus 4.8 with higher output speed."),
+        .init(id: "anthropic/claude-opus-4.7",       label: "Claude Opus 4.7",          notes: "Long-running agents, stronger coding."),
+        // Google
+        .init(id: "google/gemini-3.5-flash",         label: "Gemini 3.5 Flash",         notes: "Near-Pro coding at Flash speed and cost."),
+        .init(id: "google/gemini-3.1-flash-lite",    label: "Gemini 3.1 Flash Lite",    notes: "GA low-latency model for high-volume work."),
+        // DeepSeek
+        .init(id: "deepseek/deepseek-v4-pro",        label: "DeepSeek V4 Pro",          notes: "1.6T MoE for advanced reasoning + coding."),
+        .init(id: "deepseek/deepseek-v4-flash",      label: "DeepSeek V4 Flash",        notes: "284B MoE / 13B active — fast and efficient."),
+        // Qwen
+        .init(id: "qwen/qwen3.7-max",                label: "Qwen3.7 Max",              notes: "Flagship Qwen — agent-centric, coding-strong."),
+        .init(id: "qwen/qwen3.6-max-preview",        label: "Qwen3.6 Max Preview",      notes: "~1T sparse MoE for agentic coding."),
+        // Mistral
+        .init(id: "mistralai/mistral-medium-3.5",    label: "Mistral Medium 3.5",       notes: "Dense 128B — agentic workflows."),
+        .init(id: "mistralai/mistral-small-2603",    label: "Mistral Small (2603)",     notes: "Unified multimodal reasoning."),
+        // xAI
+        .init(id: "x-ai/grok-4.20",                  label: "Grok 4.20",                notes: "Industry-leading speed, low hallucination."),
+        // Z-AI (GLM)
+        .init(id: "z-ai/glm-5.1",                    label: "GLM-5.1",                  notes: "Long-horizon autonomous coding."),
+        .init(id: "z-ai/glm-5-turbo",                label: "GLM-5 Turbo",              notes: "Fast inference, optimised for real-world agents."),
+        // Xiaomi / ByteDance
+        .init(id: "xiaomi/mimo-v2.5-pro",            label: "MiMo-V2.5 Pro",            notes: "1T params, optimised for agentic coding."),
+        .init(id: "bytedance-seed/seed-2.0-lite",    label: "Seed-2.0 Lite",            notes: "Cost-efficient enterprise model, low latency."),
     ]
 
     // MARK: - Opencode Go
