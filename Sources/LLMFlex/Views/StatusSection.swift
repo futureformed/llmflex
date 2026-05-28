@@ -2,16 +2,18 @@ import SwiftUI
 import LLMFlexCore
 
 struct StatusSection: View {
-    @Bindable var model: AppModel
+    let status: TargetStatus
+    let title: String
+    let iconSystemName: String
 
-    private var isActive: Bool { model.codexStatus.activeProviderKey != nil }
+    private var isActive: Bool { status.activeProviderKey != nil }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
-                Image(systemName: "terminal")
+                Image(systemName: iconSystemName)
                     .foregroundStyle(isActive ? Theme.activeAccent : .secondary)
-                Text("Codex")
+                Text(title)
                     .font(.subheadline)
                     .fontWeight(.semibold)
                 Spacer()
@@ -28,7 +30,7 @@ struct StatusSection: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
-            if let m = model.codexStatus.activeModel {
+            if let m = status.activeModel {
                 Text(m)
                     .font(Theme.Fonts.mono(11))
                     .foregroundStyle(.secondary)
@@ -39,9 +41,6 @@ struct StatusSection: View {
         .padding(.leading, 10)
         .padding(.vertical, 8)
         .padding(.trailing, 6)
-        // Use overlay (not HStack) so the accent bar never asks for its
-        // own height — the panel sizes purely from its text content. This
-        // is what was causing the panel to balloon vertically.
         .overlay(alignment: .leading) {
             if isActive {
                 Rectangle()
@@ -54,19 +53,18 @@ struct StatusSection: View {
     }
 
     private var activeLine: String {
-        if let label = model.codexStatus.activeProviderLabel {
-            return label
+        if let label = status.activeProviderLabel { return label }
+        if let url = status.activeBaseURL { return url }
+        switch status.target {
+        case .codex:       return "Codex defaults (no override)"
+        case .claudeCode:  return "Claude Code defaults"
         }
-        if let url = model.codexStatus.activeBaseURL {
-            return url
-        }
-        return "Codex defaults (no override)"
     }
 
     @ViewBuilder private var authBadge: some View {
-        switch model.codexStatus.authMode {
+        switch status.authMode {
         case .apiKey:
-            badge("API key", systemImage: "key.fill", color: Theme.accent)
+            badge("API key", systemImage: "key.fill", color: Theme.activeAccent)
         case .chatgptLogin:
             badge("ChatGPT login", systemImage: "person.crop.circle.fill", color: .orange)
         case .unauthed:

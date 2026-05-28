@@ -45,6 +45,16 @@ struct ProfileRow: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
+                if !targetLabels.isEmpty {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.forward")
+                            .font(.system(size: 8))
+                            .foregroundStyle(.secondary)
+                        Text(targetLabels.joined(separator: " · "))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
 
             Spacer()
@@ -83,6 +93,16 @@ struct ProfileRow: View {
         let host = displayHost(profile.baseURL)
         if profile.modelName.isEmpty { return host }
         return "\(host) · \(profile.modelName)"
+    }
+
+    private var targetLabels: [String] {
+        TargetID.allCases.compactMap { t in
+            guard profile.provider.compatibility(for: t) == .native else { return nil }
+            switch t {
+            case .codex: return "Codex"
+            case .claudeCode: return "Claude Code"
+            }
+        }
     }
 
     private func displayHost(_ url: String) -> String {

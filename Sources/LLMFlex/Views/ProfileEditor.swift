@@ -47,21 +47,7 @@ struct ProfileEditor: View {
                             baseURL = new.defaultBaseURL
                         }
                     }
-                    if let reason = provider.codexIncompatibilityReason {
-                        HStack(alignment: .top, spacing: 6) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.orange)
-                                .font(.caption2)
-                            Text(reason)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        .padding(8)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.orange.opacity(0.10))
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                    }
+                    TargetCompatibilityChip(provider: provider)
                 }
                 field("Base URL") {
                     TextField("https://…", text: $baseURL)

@@ -12,12 +12,14 @@ final class AppModel {
     let profileStore: ProfileStore
     let keychain: KeychainStore
     let codex: CodexTarget
+    let claudeCode: ClaudeCodeTarget
     let tester: ConnectivityTester
     let migrator: SwitchCodeCleanup
 
     // Published state
     var profiles: [Profile] = []
     var codexStatus: TargetStatus
+    var claudeCodeStatus: TargetStatus
     var lastError: String?
     var lastApplyMessage: String?
     var legacyCleanupAvailable: Bool = false
@@ -30,17 +32,25 @@ final class AppModel {
         profileStore: ProfileStore = ProfileStore(),
         keychain: KeychainStore = KeychainStore(),
         codex: CodexTarget = CodexTarget(),
+        claudeCode: ClaudeCodeTarget = ClaudeCodeTarget(),
         tester: ConnectivityTester = ConnectivityTester(),
         migrator: SwitchCodeCleanup = SwitchCodeCleanup()
     ) {
         self.profileStore = profileStore
         self.keychain = keychain
         self.codex = codex
+        self.claudeCode = claudeCode
         self.tester = tester
         self.migrator = migrator
         // Synchronous best-effort initial inspect so the first render has data.
-        self.codexStatus = (try? codex.inspect()) ?? TargetStatus(
-            target: .codex,
+        self.codexStatus = (try? codex.inspect()) ?? Self.placeholderStatus(for: .codex)
+        self.claudeCodeStatus = (try? claudeCode.inspect()) ?? Self.placeholderStatus(for: .claudeCode)
+        reload()
+    }
+
+    private static func placeholderStatus(for id: TargetID) -> TargetStatus {
+        TargetStatus(
+            target: id,
             activeProviderKey: nil,
             activeProviderLabel: nil,
             activeModel: nil,
@@ -48,7 +58,6 @@ final class AppModel {
             authMode: .unknown,
             applicationRunning: false
         )
-        reload()
     }
 
     // MARK: - Lifecycle
@@ -57,6 +66,7 @@ final class AppModel {
         profiles = profileStore.all()
         do {
             codexStatus = try codex.inspect()
+            claudeCodeStatus = try claudeCode.inspect()
         } catch {
             lastError = error.localizedDescription
         }
@@ -64,12 +74,28 @@ final class AppModel {
         legacyCleanupAvailable = migrator.needsCleanup(configContent)
     }
 
+    /// Targets a profile can validly be applied to (provider's wire format
+    /// is native for those targets).
+    func applicableTargets(for profile: Profile) -> [TargetID] {
+        TargetID.allCases.filter { profile.provider.compatibility(for: $0) == .native }
+    }
+
     // MARK: - Derived state
 
-    /// True if the on-disk Codex config currently points at `profile`.
+    /// True if any target the profile would apply to currently points at it.
     func isApplied(_ profile: Profile) -> Bool {
-        guard let baseURL = codexStatus.activeBaseURL else { return false }
-        return baseURL == profile.baseURL
+        for target in applicableTargets(for: profile) {
+            let baseURL = status(for: target).activeBaseURL
+            if baseURL == profile.baseURL { return true }
+        }
+        return false
+    }
+
+    func status(for target: TargetID) -> TargetStatus {
+        switch target {
+        case .codex: return codexStatus
+        case .claudeCode: return claudeCodeStatus
+        }
     }
 
     var isBlockedByChatGPT: Bool {
@@ -104,9 +130,23 @@ final class AppModel {
             if profile.provider.requiresAPIKey, key.isEmpty {
                 throw TargetError.noAPIKey
             }
-            try codex.apply(profile: profile, apiKey: key)
+            let targets = applicableTargets(for: profile)
+            if targets.isEmpty {
+                throw TargetError.blocked(.chatgptLoginActive) // sentinel — will surface as a clear error in UI text
+            }
+            var appliedNames: [String] = []
+            for target in targets {
+                switch target {
+                case .codex:
+                    try codex.apply(profile: profile, apiKey: key)
+                    appliedNames.append("Codex")
+                case .claudeCode:
+                    try claudeCode.apply(profile: profile, apiKey: key)
+                    appliedNames.append("Claude Code")
+                }
+            }
             profileStore.activeID = profile.id
-            lastApplyMessage = "Switched to \(profile.name)."
+            lastApplyMessage = "Switched \(appliedNames.joined(separator: " + ")) to \(profile.name)."
             lastError = nil
         } catch {
             lastError = error.localizedDescription
@@ -116,12 +156,14 @@ final class AppModel {
     }
 
     func restoreDefaults() {
+        var restoredAny = false
         do {
-            let restored = try codex.restore()
+            restoredAny = try codex.restore() || restoredAny
+            restoredAny = try claudeCode.restore() || restoredAny
             profileStore.activeID = nil
-            lastApplyMessage = restored
-                ? "Restored Codex defaults."
-                : "Cleared LLM Flex config (no snapshot to restore from)."
+            lastApplyMessage = restoredAny
+                ? "Restored Codex and Claude Code to original state."
+                : "Cleared LLM Flex config (no snapshots to restore from)."
             lastError = nil
         } catch {
             lastError = error.localizedDescription

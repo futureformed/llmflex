@@ -23,7 +23,18 @@ struct PopoverView: View {
             header
             Divider()
             VStack(alignment: .leading, spacing: Theme.Metric.sectionGap) {
-                StatusSection(model: model)
+                VStack(spacing: 6) {
+                    StatusSection(
+                        status: model.codexStatus,
+                        title: "Codex",
+                        iconSystemName: "terminal"
+                    )
+                    StatusSection(
+                        status: model.claudeCodeStatus,
+                        title: "Claude Code",
+                        iconSystemName: "sparkles"
+                    )
+                }
                 if model.isBlockedByChatGPT {
                     BlockedBanner()
                 }
@@ -118,10 +129,11 @@ struct PopoverView: View {
             Button {
                 model.restoreDefaults()
             } label: {
-                Label("Restore Codex defaults", systemImage: "arrow.uturn.backward")
+                Label("Restore defaults", systemImage: "arrow.uturn.backward")
                     .font(.caption)
             }
             .buttonStyle(.borderless)
+            .help("Restore Codex and Claude Code to the state they were in before LLM Flex first touched them.")
 
             Spacer()
 
