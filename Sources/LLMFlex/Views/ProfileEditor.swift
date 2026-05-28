@@ -222,15 +222,16 @@ struct ProfileEditor: View {
     }
 
     private func save() {
+        let cleanedKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         let updated = Profile(
             id: profile?.id ?? UUID(),
-            name: name.trimmingCharacters(in: .whitespaces),
+            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
             provider: provider,
-            baseURL: baseURL.trimmingCharacters(in: .whitespaces),
-            modelName: modelName.trimmingCharacters(in: .whitespaces),
+            baseURL: baseURL.trimmingCharacters(in: .whitespacesAndNewlines),
+            modelName: modelName.trimmingCharacters(in: .whitespacesAndNewlines),
             createdAt: profile?.createdAt ?? Date()
         )
-        model.upsertProfile(updated, apiKey: apiKey.isEmpty ? nil : apiKey)
+        model.upsertProfile(updated, apiKey: cleanedKey.isEmpty ? nil : cleanedKey)
         model.cancelEditing()
         dismiss()
     }

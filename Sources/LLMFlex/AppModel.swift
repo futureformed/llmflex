@@ -119,7 +119,8 @@ final class AppModel {
     }
 
     func loadKey(for profile: Profile) -> String {
-        (try? keychain.key(for: profile.id)) ?? ""
+        let raw = (try? keychain.key(for: profile.id)) ?? ""
+        return raw.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     // MARK: - Apply / restore

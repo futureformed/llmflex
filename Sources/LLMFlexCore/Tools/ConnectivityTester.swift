@@ -32,6 +32,10 @@ public actor ConnectivityTester {
         apiKey: String?,
         scheme: AuthScheme = .bearer
     ) async -> ConnectivityResult {
+        // Trim newlines/spaces aggressively — keys pasted from web consoles
+        // often carry a trailing \n that providers reject with a generic 401.
+        let cleanKey = (apiKey ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+
         guard var components = URLComponents(string: baseURL) else {
             return .init(ok: false, statusCode: nil, message: "Invalid base URL")
         }
@@ -40,9 +44,9 @@ public actor ConnectivityTester {
         path += "models"
         components.path = path
 
-        if scheme == .googleQueryParam, let key = apiKey, !key.isEmpty {
+        if scheme == .googleQueryParam, !cleanKey.isEmpty {
             var items = components.queryItems ?? []
-            items.append(URLQueryItem(name: "key", value: key))
+            items.append(URLQueryItem(name: "key", value: cleanKey))
             components.queryItems = items
         }
         guard let url = components.url else {
@@ -50,12 +54,12 @@ public actor ConnectivityTester {
         }
 
         var req = URLRequest(url: url, timeoutInterval: 8)
-        if let key = apiKey, !key.isEmpty {
+        if !cleanKey.isEmpty {
             switch scheme {
             case .bearer:
-                req.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+                req.setValue("Bearer \(cleanKey)", forHTTPHeaderField: "Authorization")
             case .anthropicHeaders:
-                req.setValue(key, forHTTPHeaderField: "x-api-key")
+                req.setValue(cleanKey, forHTTPHeaderField: "x-api-key")
                 req.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
             case .googleQueryParam:
                 break // already encoded as a query param
