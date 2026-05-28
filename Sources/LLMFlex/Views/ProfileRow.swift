@@ -13,9 +13,9 @@ struct ProfileRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
-            // Active dot
+            // Active dot — purple to match the status panel's "live" treatment.
             Circle()
-                .fill(isApplied ? Theme.accent : Color.secondary.opacity(0.35))
+                .fill(isApplied ? Theme.activeAccent : Color.secondary.opacity(0.35))
                 .frame(width: 8, height: 8)
                 .padding(.top, 6)
 
@@ -29,8 +29,8 @@ struct ProfileRow: View {
                             .font(.caption2)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Theme.accent.opacity(0.18))
-                            .foregroundStyle(Theme.accent)
+                            .background(Theme.activeAccent.opacity(0.18))
+                            .foregroundStyle(Theme.activeAccent)
                             .clipShape(Capsule())
                     }
                     if profile.provider.codexCompatibility == .incompatible {
