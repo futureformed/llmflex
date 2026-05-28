@@ -75,9 +75,35 @@ struct ProfileEditor: View {
                     }
                 }
                 field("Model") {
-                    TextField("anthropic/claude-sonnet-4-…", text: $modelName)
-                        .textFieldStyle(.roundedBorder)
-                        .font(Theme.Fonts.mono(12))
+                    HStack(spacing: 6) {
+                        TextField("anthropic/claude-sonnet-4-…", text: $modelName)
+                            .textFieldStyle(.roundedBorder)
+                            .font(Theme.Fonts.mono(12))
+                        let entries = ModelCatalog.entries(for: provider)
+                        if !entries.isEmpty {
+                            Menu {
+                                ForEach(entries) { entry in
+                                    Button {
+                                        modelName = entry.id
+                                    } label: {
+                                        if let notes = entry.notes {
+                                            Text("\(entry.label) — \(notes)")
+                                        } else {
+                                            Text(entry.label)
+                                        }
+                                    }
+                                }
+                            } label: {
+                                Label("Quick pick", systemImage: "list.bullet.below.rectangle")
+                                    .labelStyle(.iconOnly)
+                                    .imageScale(.medium)
+                            }
+                            .menuStyle(.borderlessButton)
+                            .menuIndicator(.hidden)
+                            .frame(width: 28)
+                            .help("Pick from \(entries.count) curated models")
+                        }
+                    }
                 }
                 testRow
             }
