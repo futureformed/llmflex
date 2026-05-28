@@ -13,6 +13,15 @@ struct LLMFlexApp: App {
             Image(systemName: "arrow.left.arrow.right.circle.fill")
         }
         .menuBarExtraStyle(.window)
+
+        // Editor opens in a real Window so it survives clicking away to
+        // copy an API key from another app. dismissWindow closes it.
+        Window("Edit profile", id: AppModel.editorWindowID) {
+            ProfileEditor(model: model, profile: model.editingProfile)
+                .frame(width: Theme.Metric.popoverWidth)
+        }
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
     }
 }
 

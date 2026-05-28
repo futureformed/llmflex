@@ -3,19 +3,19 @@ import LLMFlexCore
 
 struct PopoverView: View {
     @Bindable var model: AppModel
-    @State private var statusTimerActive = false
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        Group {
-            if model.isShowingEditor {
-                ProfileEditor(model: model, profile: model.editingProfile)
-            } else {
-                mainContent
+        mainContent
+            .frame(width: Theme.Metric.popoverWidth)
+            .background(.thickMaterial)
+            .onAppear { model.reload() }
+            .onChange(of: model.editorOpenToken) { _, _ in
+                // AppModel bumps this token when the user clicks Add/Edit.
+                // Open the standalone editor Window and bring the app forward.
+                NSApp.activate(ignoringOtherApps: true)
+                openWindow(id: AppModel.editorWindowID)
             }
-        }
-        .frame(width: Theme.Metric.popoverWidth)
-        .background(.thickMaterial)
-        .onAppear { model.reload() }
     }
 
     private var mainContent: some View {

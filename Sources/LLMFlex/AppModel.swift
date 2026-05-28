@@ -8,6 +8,8 @@ import LLMFlexCore
 @MainActor
 @Observable
 final class AppModel {
+    static let editorWindowID = "profile-editor"
+
     // Storage / services
     let profileStore: ProfileStore
     let keychain: KeychainStore
@@ -24,9 +26,11 @@ final class AppModel {
     var lastApplyMessage: String?
     var legacyCleanupAvailable: Bool = false
 
-    // Editor state
+    // Editor state — editingProfile is what the standalone window edits.
+    // editorOpenToken bumps every time we want PopoverView to call openWindow,
+    // so re-clicking Add/Edit re-focuses an already-open window.
     var editingProfile: Profile?
-    var isShowingEditor: Bool = false
+    var editorOpenToken: Int = 0
 
     init(
         profileStore: ProfileStore = ProfileStore(),
@@ -242,16 +246,15 @@ final class AppModel {
 
     func startAdding() {
         editingProfile = nil
-        isShowingEditor = true
+        editorOpenToken &+= 1
     }
 
     func startEditing(_ profile: Profile) {
         editingProfile = profile
-        isShowingEditor = true
+        editorOpenToken &+= 1
     }
 
     func cancelEditing() {
-        isShowingEditor = false
         editingProfile = nil
     }
 }
