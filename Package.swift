@@ -12,7 +12,8 @@ let package = Package(
         .executableTarget(
             name: "LLMFlex",
             dependencies: ["LLMFlexCore"],
-            path: "Sources/LLMFlex"
+            path: "Sources/LLMFlex",
+            resources: [.process("Resources")]
         ),
         .target(
             name: "LLMFlexCore",

@@ -28,6 +28,16 @@ rm -rf "$APP_DIR"
 mkdir -p "$MACOS" "$RESOURCES"
 cp "$EXEC_SRC" "$MACOS/$EXEC_NAME"
 
+# Copy SPM-generated resource bundles (one per target with resources) so
+# Bundle.module can find files at runtime. SPM names them
+# <PackageName>_<TargetName>.bundle.
+for bundle in "$BIN_PATH"/*.bundle; do
+  if [ -d "$bundle" ]; then
+    echo "→ Bundling resources: $(basename "$bundle")"
+    cp -R "$bundle" "$RESOURCES/"
+  fi
+done
+
 cat > "$CONTENTS/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

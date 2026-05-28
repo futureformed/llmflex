@@ -13,8 +13,6 @@ struct ProfileEditor: View {
     @State private var testing: Bool = false
     @State private var testResult: ConnectivityResult?
 
-    @Environment(\.dismiss) private var dismiss
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
@@ -103,7 +101,6 @@ struct ProfileEditor: View {
         HStack {
             Button {
                 model.cancelEditing()
-                dismiss()
             } label: {
                 Image(systemName: "chevron.left")
             }
@@ -162,7 +159,6 @@ struct ProfileEditor: View {
                     if let p = profile {
                         model.deleteProfile(p)
                         model.cancelEditing()
-                        dismiss()
                     }
                 } label: {
                     Label("Delete", systemImage: "trash")
@@ -173,7 +169,6 @@ struct ProfileEditor: View {
             Spacer()
             Button("Cancel") {
                 model.cancelEditing()
-                dismiss()
             }
             .keyboardShortcut(.escape)
             Button(profile == nil ? "Save" : "Save changes") {
@@ -228,7 +223,6 @@ struct ProfileEditor: View {
         )
         model.upsertProfile(updated, apiKey: cleanedKey.isEmpty ? nil : cleanedKey)
         model.cancelEditing()
-        dismiss()
     }
 
     private func runTest() {
