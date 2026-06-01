@@ -8,6 +8,15 @@ APP_NAME="LLM Flex"
 BUNDLE_ID="cc.holdtight.llmflex"
 EXEC_NAME="LLMFlex"
 BUILD_DIR="build"
+
+# Version: env override (CI passes the git tag) → VERSION file → fallback.
+# Strip a leading "v" so a tag like v0.1.0 normalizes to 0.1.0.
+VERSION="${LLMFLEX_VERSION:-$(cat VERSION 2>/dev/null || echo 0.0.0)}"
+VERSION="${VERSION#v}"
+# CFBundleVersion must be a monotonically increasing build number. Commit
+# count is monotonic and reproducible; fall back to 1 outside a git checkout.
+BUILD_NUMBER="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
+echo "→ Version ${VERSION} (build ${BUILD_NUMBER})"
 APP_DIR="$BUILD_DIR/${APP_NAME}.app"
 CONTENTS="$APP_DIR/Contents"
 MACOS="$CONTENTS/MacOS"
@@ -47,8 +56,8 @@ cat > "$CONTENTS/Info.plist" <<PLIST
   <key>CFBundleDisplayName</key><string>${APP_NAME}</string>
   <key>CFBundleExecutable</key><string>${EXEC_NAME}</string>
   <key>CFBundleIdentifier</key><string>${BUNDLE_ID}</string>
-  <key>CFBundleShortVersionString</key><string>0.0.1</string>
-  <key>CFBundleVersion</key><string>1</string>
+  <key>CFBundleShortVersionString</key><string>${VERSION}</string>
+  <key>CFBundleVersion</key><string>${BUILD_NUMBER}</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>LSUIElement</key><true/>

@@ -1,0 +1,68 @@
+name: Release
+
+# Publish a GitHub Release whenever a version tag is pushed:
+#   git tag v0.1.0 && git push origin v0.1.0
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write # needed to create the Release and upload the DMG
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so build.sh can derive CFBundleVersion
+
+      - name: Resolve version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # Treat 0.x and any pre-release suffix as a GitHub pre-release.
+          if [[ "$VERSION" == 0.* || "$VERSION" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run tests
+        run: swift test
+
+      - name: Build DMG
+        env:
+          LLMFLEX_VERSION: ${{ steps.version.outputs.version }}
+        run: ./scripts/package-dmg.sh
+
+      - name: Extract release notes from CHANGELOG
+        id: notes
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          # Pull the section for this version out of CHANGELOG.md, if present.
+          if awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" {flag=1; next}
+            /^## \[/ {flag=0}
+            flag {print}
+          ' CHANGELOG.md > notes.md && [ -s notes.md ]; then
+            echo "→ Using CHANGELOG section for $VERSION"
+          else
+            echo "Alpha build $VERSION. See the commit history for changes." > notes.md
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PRERELEASE_FLAG=""
+          if [[ "${{ steps.version.outputs.prerelease }}" == "true" ]]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+          gh release create "${GITHUB_REF_NAME}" \
+            "build/LLM-Flex-${{ steps.version.outputs.version }}.dmg" \
+            --title "LLM Flex ${{ steps.version.outputs.version }}" \
+            --notes-file notes.md \
+            $PRERELEASE_FLAG
