@@ -5,17 +5,42 @@ architecture and build/test commands.
 
 ---
 
+## 2026-06-01 — First public alpha (v0.1.0) + release pipeline
+
+Shipped the first public alpha and the infrastructure to keep shipping:
+
+- **Versioning** — single-source `VERSION` file (`0.1.0`); `build.sh` bakes it into
+  `CFBundleShortVersionString` and uses `git rev-list --count` for a monotonic
+  `CFBundleVersion`. Env override `LLMFLEX_VERSION` lets CI pass the tag.
+- **DMG packaging** — `scripts/package-dmg.sh` (pure `hdiutil`, no deps): builds the
+  app, stages it with an Applications symlink, emits `build/LLM-Flex-<version>.dmg`.
+- **GitHub Releases** — `.github/workflows/release.yml` fires on `v*` tags: tests →
+  DMG → `gh release create` (pre-release for `0.x`, notes pulled from CHANGELOG).
+- **CHANGELOG.md** (Keep a Changelog), seeded with 0.1.0.
+- **README** — download/install with the Gatekeeper workaround (ad-hoc signed,
+  not notarized) and a releasing guide.
+- Verified the full pipeline: built the DMG locally (mounts/verifies clean), then
+  tagged `v0.1.0` → CI ran green in 57s →
+  [Release published](https://github.com/machomanrandysavageldn/llmflex/releases/tag/v0.1.0)
+  with the DMG attached.
+
+**Open items / follow-ups:**
+
+- **arm64-only build.** Both the local Mac and the `macos-latest` CI runner are
+  Apple Silicon, so the DMG won't run on Intel Macs. If testers need Intel, make
+  the binary universal: `swift build -c release --arch arm64 --arch x86_64`.
+- **No notarization** — testers hit a Gatekeeper warning (documented). Needs a paid
+  Apple Developer ID to remove; out of scope for alpha.
+- CI annotation: `actions/checkout@v4` runs on Node 20 (deprecated June 2026). Bump
+  when convenient.
+- Possible nicety: surface the app version inside the menu-bar UI so testers can
+  report which build they're on (currently only in Info.plist).
+
 ## 2026-06-01 — Project docs
 
 - Authored `CLAUDE.md` (architecture, build/test, target write-paths, invariants).
 - Created this project log, seeded from git history.
-- **State at session start:** branch `main`, clean tree, **1 commit ahead of `origin`**
-  (the README merge — still unpushed). All 58 `LLMFlexCore` tests pass.
-
-**Next steps / open items:**
-
-- Push the unpushed commit to `origin` when ready.
-- No outstanding bugs or in-progress feature work recorded.
+- Pushed the previously-unpushed README-merge commit; `main` synced with `origin`.
 
 ---
 
