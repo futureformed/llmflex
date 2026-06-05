@@ -19,6 +19,9 @@ Versions `0.x` are alpha: things may change and break while feedback comes in.
 - **Clearer status panel** — each target (Codex, Claude Code) now shows the
   active provider, model, and endpoint on labelled rows, so it's obvious at a
   glance what's currently live.
+- **Menu polish** — the feedback button is now labelled "Send feedback" (was a
+  bare envelope icon), a "Help" link in the footer opens the GitHub guide, and a
+  stronger tinted divider separates the status panel from the profiles list.
 
 ## [0.1.0] - 2026-06-01
 
