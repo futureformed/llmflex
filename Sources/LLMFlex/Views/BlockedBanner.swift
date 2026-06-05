@@ -53,3 +53,39 @@ struct LegacyCleanupBanner: View {
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
+
+struct UpdateAvailableBanner: View {
+    let version: String
+    let url: URL
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "arrow.down.circle.fill")
+                .foregroundStyle(Theme.accent)
+                .padding(.top, 2)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Version \(version) is available")
+                    .font(Theme.Fonts.body)
+                    .fontWeight(.semibold)
+                Text("Download the latest build from GitHub and drag it into Applications to update.")
+                    .font(Theme.Fonts.meta)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Link(destination: url) {
+                    Label("Download update", systemImage: "arrow.up.forward.square")
+                        .font(Theme.Fonts.body)
+                }
+                .llmAccentTint()
+                .padding(.top, 2)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(10)
+        .background(Theme.accent.opacity(0.10))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Theme.accent.opacity(0.30), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
