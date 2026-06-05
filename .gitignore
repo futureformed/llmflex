@@ -5,3 +5,7 @@ build/
 *.xcodeproj/
 .DS_Store
 .claude/settings.local.json
+
+# Brand-kit reference material (sources wired into art/ and Resources/)
+/LLM Flex brand assets.zip
+/LLM-Flex-Brand-Kit-CC/
