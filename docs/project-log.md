@@ -5,6 +5,61 @@ architecture and build/test commands.
 
 ---
 
+## 2026-06-05 — Feature cycle (0.2.0) + two crash fixes (0.2.1, 0.2.2)
+
+Shipped three releases. **0.2.0** bundled a batch of features; **0.2.1** and
+**0.2.2** fixed two distribution-only crashes/bugs the user hit while testing.
+
+**0.2.0 — features:**
+- **Clearer status panel** — each target shows active provider / model / endpoint
+  on labelled rows (`StatusSection`).
+- **In-app feedback** — envelope button → form composing a `mailto:` to
+  llmflex@holdtight.cc, tagged with app + macOS version. Encoding in
+  `LLMFlexCore/FeedbackMailto` (unit-tested: `&`/`=`/`+`/newline/emoji).
+- **Update notifications** — on popover open, polls GitHub `/releases` (the
+  *list*, not `/latest` — `0.x` are pre-releases so `/latest` 404s), picks the
+  highest semver tag, shows a download banner. `SemanticVersion` + `UpdateChecker`
+  in Core, unit-tested; verified live end-to-end.
+- **Menu polish** — labelled "Send feedback", footer "Help" link → README guide,
+  tinted divider between status panel and profiles.
+- **README** — step-by-step getting-started guide (per-provider API keys + usage),
+  provider table scoped to combos that actually apply.
+
+**0.2.1 — crash on menu open (affected 0.1.0 + 0.2.0, all users):**
+`ProviderBadge` loaded icons via SPM's generated `Bundle.module`, whose accessor
+`fatalError`s when its two candidate paths miss — which they always do in a
+distributed `.app` (bundle is in `Contents/Resources`; the fallback is the build
+machine's absolute path). Fixed with `ResourceBundleLocator` (Core, unit-tested,
+returns nil never traps); `ProviderBadge` falls back to its monogram. **Key
+gotcha: this can't be reproduced via local `build.sh` — the baked build path
+resolves on the dev's own machine. Verify resource/packaging changes via Core
+tests, not a local run. Do not reintroduce `Bundle.module` in the app target.**
+
+**0.2.2 — couldn't delete a profile:** the delete confirmation was a system
+`.alert`, which steals key focus from the `MenuBarExtra` popover and dismisses it
+before the action runs. Replaced with an inline Delete/Cancel confirmation in the
+row (`ProfileRow`).
+
+**Also this session:**
+- Added [`art/README.md`](../art/README.md) — spec/checklist for design assets.
+- GitHub ruleset (`basic ruleset`) tuned with the user: scoped to default branch,
+  require-PR with 0 approvals, dropped Restrict-updates and signed-commits — PRs
+  now merge through the normal path (no `--admin`).
+- Tests: 81 (added FeedbackMailto, SemanticVersion/UpdateChecker, ResourceBundleLocator).
+
+**Queued for next session (user handling separately):**
+- **Notarization** — user is setting up an Apple Developer account. Then wire
+  `codesign` (Developer ID) + `notarytool` into `release.yml`. Needs GitHub
+  secrets: Developer ID cert (.p12 + password) and an app-specific password /
+  notary credentials. Removes the Gatekeeper "Open Anyway" friction for testers.
+- **Branding** — user providing design assets per `art/README.md`. Then: generate
+  `.icns` + wire `CFBundleIconFile` into `build.sh`; add menu-bar template image;
+  apply palette to `Theme.swift`. App icon also feeds a planned marketing website.
+- **Website** — user intends to build one (download page that pre-explains the
+  Gatekeeper step; can point at the latest release DMG via the same GitHub API).
+- **User to confirm** the 0.2.2 delete flow after updating (only thing not
+  click-tested this session — computer-use was unavailable).
+
 ## 2026-06-01 — First public alpha (v0.1.0) + release pipeline
 
 Shipped the first public alpha and the infrastructure to keep shipping:
