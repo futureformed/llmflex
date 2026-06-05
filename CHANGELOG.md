@@ -8,6 +8,8 @@ Versions `0.x` are alpha: things may change and break while feedback comes in.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-05
+
 ### Added
 - **Update notifications** — on open, the app quietly checks GitHub for a newer
   release and shows a banner linking to the download when one is available.
@@ -51,5 +53,6 @@ by Claude Code and OpenAI Codex without hand-editing config files.
   so changes can be fully rolled back.
 - **DMG packaging** (`scripts/package-dmg.sh`) and tag-triggered GitHub Releases.
 
-[Unreleased]: https://github.com/futureformed/llmflex/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/futureformed/llmflex/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/futureformed/llmflex/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/futureformed/llmflex/releases/tag/v0.1.0
