@@ -37,12 +37,14 @@ struct PopoverView: View {
                     StatusSection(
                         status: model.codexStatus,
                         title: "Codex",
+                        iconKey: "codex",
                         iconSystemName: "terminal",
                         activeProvider: model.activeProfile(for: .codex)?.provider
                     )
                     StatusSection(
                         status: model.claudeCodeStatus,
                         title: "Claude Code",
+                        iconKey: "claude_code",
                         iconSystemName: "sparkles",
                         activeProvider: model.activeProfile(for: .claudeCode)?.provider
                     )
@@ -76,9 +78,9 @@ struct PopoverView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            Image(systemName: "arrow.left.arrow.right.circle.fill")
+            Image(nsImage: BrandGlyph.image(height: 18))
+                .renderingMode(.template)
                 .foregroundStyle(Theme.accent)
-                .font(.title2)
             Text("LLM Flex")
                 .font(Theme.Fonts.title)
             Spacer()

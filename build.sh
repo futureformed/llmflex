@@ -47,6 +47,23 @@ for bundle in "$BIN_PATH"/*.bundle; do
   fi
 done
 
+# App icon: generate LLMFlex.icns from the 1024×1024 master and drop it in
+# Resources. CFBundleIconFile (set in Info.plist below) points Finder/Dock at it.
+ICON_SRC="art/icon-1024.png"
+if [[ -f "$ICON_SRC" ]]; then
+  echo "→ Generating app icon"
+  ICONSET="$BUILD_DIR/LLMFlex.iconset"
+  rm -rf "$ICONSET"
+  mkdir -p "$ICONSET"
+  for s in 16 32 128 256 512; do
+    sips -z "$s" "$s"               "$ICON_SRC" --out "$ICONSET/icon_${s}x${s}.png"    >/dev/null
+    sips -z "$((s*2))" "$((s*2))"   "$ICON_SRC" --out "$ICONSET/icon_${s}x${s}@2x.png" >/dev/null
+  done
+  iconutil -c icns "$ICONSET" -o "$RESOURCES/LLMFlex.icns"
+else
+  echo "⚠ $ICON_SRC missing — building without an app icon"
+fi
+
 cat > "$CONTENTS/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -59,6 +76,7 @@ cat > "$CONTENTS/Info.plist" <<PLIST
   <key>CFBundleShortVersionString</key><string>${VERSION}</string>
   <key>CFBundleVersion</key><string>${BUILD_NUMBER}</string>
   <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleIconFile</key><string>LLMFlex</string>
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>LSUIElement</key><true/>
   <key>NSHighResolutionCapable</key><true/>

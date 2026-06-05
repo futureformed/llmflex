@@ -88,6 +88,7 @@ struct ProfileRow: View {
                         .imageScale(.large)
                 }
                 .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
                 .frame(width: 24)
             }
         }
