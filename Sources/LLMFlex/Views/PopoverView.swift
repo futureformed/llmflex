@@ -16,6 +16,12 @@ struct PopoverView: View {
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: AppModel.editorWindowID)
             }
+            .onChange(of: model.feedbackOpenToken) { _, _ in
+                // Bumped when the user clicks Send feedback. Opens the feedback
+                // Window (its own id, never the editor's).
+                NSApp.activate(ignoringOtherApps: true)
+                openWindow(id: AppModel.feedbackWindowID)
+            }
     }
 
     private var mainContent: some View {
@@ -65,6 +71,15 @@ struct PopoverView: View {
             Text("LLM Flex")
                 .font(Theme.Fonts.title)
             Spacer()
+            Button {
+                model.startFeedback()
+            } label: {
+                Image(systemName: "envelope")
+                    .imageScale(.large)
+            }
+            .buttonStyle(.borderless)
+            .llmAccentTint()
+            .help("Send feedback to the LLM Flex team")
             Button {
                 NSApp.terminate(nil)
             } label: {

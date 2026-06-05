@@ -22,6 +22,15 @@ struct LLMFlexApp: App {
         }
         .windowResizability(.contentSize)
         .defaultPosition(.center)
+
+        // Feedback form — its own Window so it survives clicking away, same as
+        // the editor. Separate id/token so the two never cross-wire.
+        Window("Send feedback", id: AppModel.feedbackWindowID) {
+            FeedbackView(model: model)
+                .frame(width: Theme.Metric.popoverWidth)
+        }
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
     }
 }
 

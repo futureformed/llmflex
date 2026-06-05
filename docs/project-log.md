@@ -21,7 +21,7 @@ Shipped the first public alpha and the infrastructure to keep shipping:
   not notarized) and a releasing guide.
 - Verified the full pipeline: built the DMG locally (mounts/verifies clean), then
   tagged `v0.1.0` → CI ran green in 57s →
-  [Release published](https://github.com/machomanrandysavageldn/llmflex/releases/tag/v0.1.0)
+  [Release published](https://github.com/futureformed/llmflex/releases/tag/v0.1.0)
   with the DMG attached.
 
 **Open items / follow-ups:**

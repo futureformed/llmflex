@@ -8,6 +8,18 @@ Versions `0.x` are alpha: things may change and break while feedback comes in.
 
 ## [Unreleased]
 
+### Added
+- **In-app feedback** — an envelope button in the menu opens a feedback form
+  that composes an email to llmflex@holdtight.cc, pre-tagged with your app and
+  macOS version.
+- **Step-by-step getting-started guide** in the README covering how to obtain a
+  provider API key and use the app.
+
+### Changed
+- **Clearer status panel** — each target (Codex, Claude Code) now shows the
+  active provider, model, and endpoint on labelled rows, so it's obvious at a
+  glance what's currently live.
+
 ## [0.1.0] - 2026-06-01
 
 First public alpha. A macOS menu-bar app for switching the model/provider used
@@ -33,5 +45,5 @@ by Claude Code and OpenAI Codex without hand-editing config files.
   so changes can be fully rolled back.
 - **DMG packaging** (`scripts/package-dmg.sh`) and tag-triggered GitHub Releases.
 
-[Unreleased]: https://github.com/machomanrandysavageldn/llmflex/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/machomanrandysavageldn/llmflex/releases/tag/v0.1.0
+[Unreleased]: https://github.com/futureformed/llmflex/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/futureformed/llmflex/releases/tag/v0.1.0
