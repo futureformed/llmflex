@@ -23,8 +23,10 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          # Treat 0.x and any pre-release suffix as a GitHub pre-release.
-          if [[ "$VERSION" == 0.* || "$VERSION" == *-* ]]; then
+          # Only an explicit pre-release suffix (e.g. 1.0.0-beta) is a GitHub
+          # pre-release. 0.x ships as a normal release so the newest always
+          # shows as "Latest" on the repo page and /releases/latest resolves.
+          if [[ "$VERSION" == *-* ]]; then
             echo "prerelease=true" >> "$GITHUB_OUTPUT"
           else
             echo "prerelease=false" >> "$GITHUB_OUTPUT"

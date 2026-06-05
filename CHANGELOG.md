@@ -8,6 +8,23 @@ Versions `0.x` are alpha: things may change and break while feedback comes in.
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-06-05
+
+### Added
+- **Fresh Futureformed look.** New app icon, a custom menu-bar glyph, and the
+  brand purple (`#6127F5`) accent throughout the popover.
+- **Real app icons** for Codex and Claude Code on the status cards (with an SF
+  Symbol fallback).
+
+### Changed
+- **Clearer status cards.** Codex and Claude Code now read as peer cards, each
+  tagged **FLEXED** (currently switched by LLM Flex) or **DEFAULT** (on its own
+  settings). Removed the endpoint line from the active card to tighten it up.
+
+### Fixed
+- **Profile row menu** showed a redundant dropdown chevron next to the "…"
+  button; removed it.
+
 ## [0.2.2] - 2026-06-05
 
 ### Fixed
