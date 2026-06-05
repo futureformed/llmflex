@@ -51,7 +51,11 @@ struct PopoverView: View {
                         model.cleanupLegacy()
                     }
                 }
-                Divider()
+                Rectangle()
+                    .fill(Theme.accent.opacity(0.30))
+                    .frame(height: 2)
+                    .clipShape(Capsule())
+                    .padding(.vertical, 2)
                 profilesSection
             }
             .padding(.horizontal, Theme.Metric.outerPadding)
@@ -74,8 +78,9 @@ struct PopoverView: View {
             Button {
                 model.startFeedback()
             } label: {
-                Image(systemName: "envelope")
-                    .imageScale(.large)
+                Label("Send feedback", systemImage: "envelope")
+                    .labelStyle(.titleAndIcon)
+                    .font(Theme.Fonts.body)
             }
             .buttonStyle(.borderless)
             .llmAccentTint()
@@ -164,6 +169,14 @@ struct PopoverView: View {
                 .buttonStyle(.borderless)
                 .llmAccentTint()
             }
+
+            Link(destination: URL(string: "https://github.com/futureformed/llmflex#getting-started-step-by-step")!) {
+                Label("Help", systemImage: "questionmark.circle")
+                    .font(Theme.Fonts.body)
+            }
+            .buttonStyle(.borderless)
+            .llmAccentTint()
+            .help("Open the LLM Flex guide on GitHub")
         }
         .padding(.horizontal, Theme.Metric.outerPadding)
         .padding(.vertical, 12)
