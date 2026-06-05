@@ -60,34 +60,44 @@ struct ProfileRow: View {
 
             Spacer()
 
-            Menu {
-                Button("Apply", systemImage: "play.fill", action: onApply)
-                    .disabled(!canApply)
-                Button("Edit", systemImage: "pencil", action: onEdit)
-                Divider()
-                Button("Delete", systemImage: "trash", role: .destructive) {
-                    confirmDelete = true
+            // Inline confirmation rather than a system .alert: an alert steals
+            // key focus from the MenuBarExtra popover, which dismisses it and
+            // drops the button action. Inline state stays inside the popover.
+            if confirmDelete {
+                HStack(spacing: 6) {
+                    Button("Delete", role: .destructive, action: onDelete)
+                        .buttonStyle(.borderedProminent)
+                        .tint(.red)
+                        .controlSize(.small)
+                    Button("Cancel") { confirmDelete = false }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
                 }
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .imageScale(.large)
+                .help("Deletes the profile and its stored API key")
+            } else {
+                Menu {
+                    Button("Apply", systemImage: "play.fill", action: onApply)
+                        .disabled(!canApply)
+                    Button("Edit", systemImage: "pencil", action: onEdit)
+                    Divider()
+                    Button("Delete", systemImage: "trash", role: .destructive) {
+                        confirmDelete = true
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .imageScale(.large)
+                }
+                .menuStyle(.borderlessButton)
+                .frame(width: 24)
             }
-            .menuStyle(.borderlessButton)
-            .frame(width: 24)
         }
         .contentShape(Rectangle())
         .onTapGesture {
-            guard canApply else { return }
+            // Don't apply while a delete confirmation is showing on this row.
+            guard canApply, !confirmDelete else { return }
             onApply()
         }
         .padding(.vertical, 4)
-        .alert("Delete \(profile.name)?",
-               isPresented: $confirmDelete) {
-            Button("Cancel", role: .cancel) {}
-            Button("Delete", role: .destructive, action: onDelete)
-        } message: {
-            Text("This removes the profile and its stored API key.")
-        }
     }
 
     private var metaLine: String {
