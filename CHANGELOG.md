@@ -8,6 +8,14 @@ Versions `0.x` are alpha: things may change and break while feedback comes in.
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-06-05
+
+### Fixed
+- **Couldn't delete a profile.** The delete confirmation used a system alert,
+  which steals focus from the menu-bar popover and dismisses it before the
+  Delete button's action runs. Replaced with an inline "Delete / Cancel"
+  confirmation that stays within the popover.
+
 ## [0.2.1] - 2026-06-05
 
 ### Fixed
@@ -63,7 +71,8 @@ by Claude Code and OpenAI Codex without hand-editing config files.
   so changes can be fully rolled back.
 - **DMG packaging** (`scripts/package-dmg.sh`) and tag-triggered GitHub Releases.
 
-[Unreleased]: https://github.com/futureformed/llmflex/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/futureformed/llmflex/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/futureformed/llmflex/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/futureformed/llmflex/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/futureformed/llmflex/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/futureformed/llmflex/releases/tag/v0.1.0
