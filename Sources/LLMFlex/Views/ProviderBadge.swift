@@ -27,12 +27,32 @@ struct ProviderBadge: View {
         // Tries the provider's raw value, e.g. "openai", "lm_studio".
         // Note: SPM's .process("Resources") flattens directory structure,
         // so the files live at the bundle root, not under ProviderIcons/.
-        guard let url = Bundle.module.url(
+        //
+        // We deliberately do NOT use `Bundle.module` here: its generated
+        // accessor fatalErrors when its two hardcoded candidate paths miss,
+        // which is exactly what happens in a distributed .app (see
+        // ResourceBundleLocator). Resolve the bundle ourselves and degrade to
+        // the monogram if it (or the icon) isn't found.
+        guard let url = Self.iconBundle?.url(
             forResource: provider.rawValue,
             withExtension: "png"
         ) else { return nil }
         return NSImage(contentsOf: url)
     }
+
+    /// The SPM resource bundle holding provider icons, located resiliently.
+    /// `Bundle.main.resourceURL` covers the packaged `.app`
+    /// (`Contents/Resources/…`); `bundleURL` covers `swift run`, where the
+    /// bundle sits next to the executable. Resolved once.
+    private static let iconBundle: Bundle? = {
+        let name = "LLMFlex_LLMFlex.bundle"
+        var candidates: [URL] = []
+        if let res = Bundle.main.resourceURL {
+            candidates.append(res.appendingPathComponent(name))
+        }
+        candidates.append(Bundle.main.bundleURL.appendingPathComponent(name))
+        return ResourceBundleLocator.firstExisting(candidates).flatMap(Bundle.init(url:))
+    }()
 
     private var monogram: some View {
         ZStack {
