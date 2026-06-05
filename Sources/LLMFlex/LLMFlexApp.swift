@@ -10,7 +10,7 @@ struct LLMFlexApp: App {
         MenuBarExtra {
             PopoverView(model: model)
         } label: {
-            Image(systemName: "arrow.left.arrow.right.circle.fill")
+            Image(nsImage: BrandGlyph.menuBar)
         }
         .menuBarExtraStyle(.window)
 

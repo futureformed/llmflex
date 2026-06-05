@@ -4,6 +4,9 @@ import LLMFlexCore
 struct StatusSection: View {
     let status: TargetStatus
     let title: String
+    /// Brand-icon key — looks for `Resources/TargetIcons/<iconKey>.png`.
+    let iconKey: String
+    /// SF Symbol shown if the brand PNG isn't bundled yet.
     let iconSystemName: String
     let activeProvider: Provider?
 
@@ -12,9 +15,10 @@ struct StatusSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Image(systemName: iconSystemName)
-                    .foregroundStyle(isActive ? Theme.activeAccent : .secondary)
-                    .font(.system(size: 14, weight: .semibold))
+                TargetBadge(iconKey: iconKey,
+                            fallbackSystemName: iconSystemName,
+                            size: 18,
+                            active: isActive)
                 Text(title)
                     .font(Theme.Fonts.bodyBold)
                 Spacer()
@@ -36,10 +40,12 @@ struct StatusSection: View {
                         .foregroundStyle(.primary)
                         .lineLimit(1)
                         .truncationMode(.middle)
+                    Spacer(minLength: 8)
+                    stateTag("Flexed", color: Theme.activeAccent)
                 }
-                // The two things the user actually wants to see at a glance.
+                // The model is what the user wants at a glance here; the full
+                // endpoint URL belongs in the profile editor, not this summary.
                 detailRow("Model", value: status.activeModel ?? "default", emphasized: status.activeModel != nil)
-                detailRow("Endpoint", value: endpointValue, emphasized: false)
             } else {
                 HStack(spacing: 8) {
                     Circle()
@@ -50,6 +56,8 @@ struct StatusSection: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .truncationMode(.middle)
+                    Spacer(minLength: 8)
+                    stateTag("Default", color: .secondary)
                 }
             }
         }
@@ -57,15 +65,29 @@ struct StatusSection: View {
         .padding(.vertical, 10)
         .padding(.trailing, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
+        // Both targets read as peer cards: flexed = green, on-defaults =
+        // neutral. The left bar + fill give the inactive one a container too,
+        // so it no longer floats next to the active card.
         .overlay(alignment: .leading) {
-            if isActive {
-                Rectangle()
-                    .fill(Theme.activeAccent)
-                    .frame(width: 3)
-            }
+            Rectangle()
+                .fill(isActive ? Theme.activeAccent : Color.secondary.opacity(0.35))
+                .frame(width: 3)
         }
-        .background(isActive ? Theme.activeBackground.opacity(0.45) : Color.clear)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .background(isActive ? Theme.activeBackground.opacity(0.45)
+                             : Color.secondary.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.control))
+    }
+
+    /// Small uppercase pill naming the target's state ("Flexed" / "Default")
+    /// so the meaning is carried by words, not colour alone.
+    private func stateTag(_ text: String, color: Color) -> some View {
+        Text(text.uppercased())
+            .font(Theme.Fonts.label)
+            .kerning(0.6)
+            .foregroundStyle(color)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 2)
+            .background(color.opacity(0.15), in: Capsule())
     }
 
     /// A labelled key/value line: "MODEL  gpt-4o" / "ENDPOINT  https://…".
@@ -86,17 +108,6 @@ struct StatusSection: View {
                 .textSelection(.enabled)
         }
         .padding(.leading, 15) // align under the provider name (dot + spacing)
-    }
-
-    /// What to show on the Endpoint row. Prefer the real base URL; fall back to
-    /// the derived label, then a sensible default per target.
-    private var endpointValue: String {
-        if let url = status.activeBaseURL { return url }
-        if let label = status.activeProviderLabel { return label }
-        switch status.target {
-        case .codex:      return "Codex default"
-        case .claudeCode: return "api.anthropic.com"
-        }
     }
 
     /// The provider's display name for the provider line.
