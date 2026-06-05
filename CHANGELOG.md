@@ -8,6 +8,16 @@ Versions `0.x` are alpha: things may change and break while feedback comes in.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-06-05
+
+### Fixed
+- **Crash on opening the menu** in distributed builds. `ProviderBadge` loaded
+  icons via SPM's generated `Bundle.module`, whose accessor `fatalError`s when
+  its hardcoded candidate paths miss — which they always do in a downloaded
+  `.app` (the bundle lives in `Contents/Resources`, and the fallback path is the
+  build machine's). Icons are now located resiliently and fall back to a
+  monogram instead of crashing. Affected 0.1.0 and 0.2.0.
+
 ## [0.2.0] - 2026-06-05
 
 ### Added
@@ -53,6 +63,7 @@ by Claude Code and OpenAI Codex without hand-editing config files.
   so changes can be fully rolled back.
 - **DMG packaging** (`scripts/package-dmg.sh`) and tag-triggered GitHub Releases.
 
-[Unreleased]: https://github.com/futureformed/llmflex/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/futureformed/llmflex/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/futureformed/llmflex/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/futureformed/llmflex/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/futureformed/llmflex/releases/tag/v0.1.0
