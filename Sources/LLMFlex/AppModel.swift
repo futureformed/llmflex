@@ -9,6 +9,7 @@ import LLMFlexCore
 @Observable
 final class AppModel {
     static let editorWindowID = "profile-editor"
+    static let feedbackWindowID = "feedback"
 
     // Storage / services
     let profileStore: ProfileStore
@@ -31,6 +32,9 @@ final class AppModel {
     // so re-clicking Add/Edit re-focuses an already-open window.
     var editingProfile: Profile?
     var editorOpenToken: Int = 0
+
+    // Feedback window — its own token so it never cross-wires with the editor.
+    var feedbackOpenToken: Int = 0
 
     init(
         profileStore: ProfileStore = ProfileStore(),
@@ -256,5 +260,11 @@ final class AppModel {
 
     func cancelEditing() {
         editingProfile = nil
+    }
+
+    // MARK: - Feedback
+
+    func startFeedback() {
+        feedbackOpenToken &+= 1
     }
 }
