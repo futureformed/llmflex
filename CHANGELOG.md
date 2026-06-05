@@ -9,6 +9,9 @@ Versions `0.x` are alpha: things may change and break while feedback comes in.
 ## [Unreleased]
 
 ### Added
+- **Update notifications** — on open, the app quietly checks GitHub for a newer
+  release and shows a banner linking to the download when one is available.
+  Pre-releases are included so alpha builds are covered.
 - **In-app feedback** — an envelope button in the menu opens a feedback form
   that composes an email to llmflex@holdtight.cc, pre-tagged with your app and
   macOS version.

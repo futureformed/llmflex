@@ -22,6 +22,10 @@ struct PopoverView: View {
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: AppModel.feedbackWindowID)
             }
+            .task {
+                // Quietly poll GitHub for a newer release each time the menu opens.
+                await model.checkForUpdates()
+            }
     }
 
     private var mainContent: some View {
@@ -42,6 +46,9 @@ struct PopoverView: View {
                         iconSystemName: "sparkles",
                         activeProvider: model.activeProfile(for: .claudeCode)?.provider
                     )
+                }
+                if let update = model.availableUpdate {
+                    UpdateAvailableBanner(version: update.version, url: update.url)
                 }
                 if model.isBlockedByChatGPT {
                     BlockedBanner()

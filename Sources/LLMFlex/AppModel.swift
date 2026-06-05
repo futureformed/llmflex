@@ -18,6 +18,7 @@ final class AppModel {
     let claudeCode: ClaudeCodeTarget
     let tester: ConnectivityTester
     let migrator: SwitchCodeCleanup
+    let updateChecker: UpdateChecker
 
     // Published state
     var profiles: [Profile] = []
@@ -26,6 +27,12 @@ final class AppModel {
     var lastError: String?
     var lastApplyMessage: String?
     var legacyCleanupAvailable: Bool = false
+    var availableUpdate: AvailableUpdate?
+
+    struct AvailableUpdate: Equatable {
+        let version: String
+        let url: URL
+    }
 
     // Editor state — editingProfile is what the standalone window edits.
     // editorOpenToken bumps every time we want PopoverView to call openWindow,
@@ -42,7 +49,8 @@ final class AppModel {
         codex: CodexTarget = CodexTarget(),
         claudeCode: ClaudeCodeTarget = ClaudeCodeTarget(),
         tester: ConnectivityTester = ConnectivityTester(),
-        migrator: SwitchCodeCleanup = SwitchCodeCleanup()
+        migrator: SwitchCodeCleanup = SwitchCodeCleanup(),
+        updateChecker: UpdateChecker = UpdateChecker()
     ) {
         self.profileStore = profileStore
         self.keychain = keychain
@@ -50,6 +58,7 @@ final class AppModel {
         self.claudeCode = claudeCode
         self.tester = tester
         self.migrator = migrator
+        self.updateChecker = updateChecker
         // Synchronous best-effort initial inspect so the first render has data.
         self.codexStatus = (try? codex.inspect()) ?? Self.placeholderStatus(for: .codex)
         self.claudeCodeStatus = (try? claudeCode.inspect()) ?? Self.placeholderStatus(for: .claudeCode)
@@ -266,5 +275,17 @@ final class AppModel {
 
     func startFeedback() {
         feedbackOpenToken &+= 1
+    }
+
+    // MARK: - Update check
+
+    /// Polls GitHub for a newer release and surfaces a banner if one exists.
+    /// Silent on any failure — a flaky network must never nag the user.
+    func checkForUpdates() async {
+        let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        guard !current.isEmpty else { return }
+        if case let .updateAvailable(version, url) = await updateChecker.check(currentVersion: current) {
+            availableUpdate = AvailableUpdate(version: version, url: url)
+        }
     }
 }
