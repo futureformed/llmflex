@@ -1,0 +1,23 @@
+# Security updates only.
+# open-pull-requests-limit: 0 turns off routine version bumps.
+# Security updates still open, grouped into one PR per ecosystem and folder.
+version: 2
+updates:
+  - package-ecosystem: "swift"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    groups:
+      swift-security-root:
+        applies-to: security-updates
+        patterns: ["*"]
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    groups:
+      github-actions-security-root:
+        applies-to: security-updates
+        patterns: ["*"]
